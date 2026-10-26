@@ -1,0 +1,25 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Xcode & Swift Package Manager
+.build/
+.swiftpm/
+DerivedData/
+build/
+xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+Package.resolved
+
+# iCloud / Finder conflict duplicates
+* [0-9].*
+* [0-9][0-9].*
+
+# Local build outputs (keep dist/MacResourceGuard-1.0.0.dmg or release via GitHub Releases)
+dist/*.app/
+dist/screenshots/

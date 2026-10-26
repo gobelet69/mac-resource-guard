@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+      Distribution Strategy: Direct Developer ID Signed & Notarized Utility (Non-Sandboxed).
+      App Sandbox blocks proc_pid_rusage() inspection of peer user processes and restricts
+      NSRunningApplication.terminate() across apps. Disabling App Sandbox while enabling
+      Hardened Runtime allows full user-space process inspection and graceful termination
+      with zero administrator privileges, zero Accessibility permissions, and zero Full Disk Access.
+    -->
+    <key>com.apple.security.app-sandbox</key>
+    <false/>
+</dict>
+</plist>

@@ -106,14 +106,14 @@ public final class StatusBarController: NSObject, NSPopoverDelegate {
         case .elevated:
             symbolName = "exclamationmark.triangle.fill"
             if let img = NSImage(systemSymbolName: symbolName, accessibilityDescription: "Elevated Resource Usage")?.withSymbolConfiguration(config) {
-                img.isTemplate = false
+                img.isTemplate = true
                 button.image = img
                 button.contentTintColor = .systemOrange
             }
         case .critical:
             symbolName = "exclamationmark.octagon.fill"
             if let img = NSImage(systemSymbolName: symbolName, accessibilityDescription: "Critical Resource Pressure")?.withSymbolConfiguration(config) {
-                img.isTemplate = false
+                img.isTemplate = true
                 button.image = img
                 button.contentTintColor = .systemRed
             }

@@ -3,38 +3,74 @@ import AppKit
 import MacResourceGuardCore
 #endif
 
-/// Lightweight, static progress bar view that draws using native system semantic colors without timers.
+/// Lightweight, static progress bar view that draws using CoreAnimation layers without software rasterization.
 final class StaticLevelBarView: NSView {
+    private let trackLayer = CALayer()
+    private let fillLayer = CALayer()
+
     var fraction: Double = 0.0 {
         didSet {
-            let clamped = min(1.0, max(0.0, fraction))
-            if abs(clamped - oldValue) > 0.005 {
-                needsDisplay = true
-            }
+            updateFillFrame()
         }
     }
 
     var fillColor: NSColor = .systemGreen {
-        didSet { needsDisplay = true }
+        didSet {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            fillLayer.backgroundColor = fillColor.cgColor
+            CATransaction.commit()
+        }
     }
 
-    override var wantsUpdateLayer: Bool { false }
+    override var wantsUpdateLayer: Bool { true }
 
-    override func draw(_ dirtyRect: NSRect) {
-        let bounds = self.bounds
-        let radius = bounds.height / 2.0
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        wantsLayer = true
+        layer?.masksToBounds = true
+        layer?.cornerRadius = 3
 
-        let trackPath = NSBezierPath(roundedRect: bounds, xRadius: radius, yRadius: radius)
-        NSColor.quaternaryLabelColor.setFill()
-        trackPath.fill()
+        trackLayer.masksToBounds = true
+        trackLayer.cornerRadius = 3
+        layer?.addSublayer(trackLayer)
 
-        let fillWidth = max(bounds.height, bounds.width * CGFloat(min(1.0, max(0.0, fraction))))
+        fillLayer.masksToBounds = true
+        fillLayer.cornerRadius = 3
+        fillLayer.backgroundColor = fillColor.cgColor
+        layer?.addSublayer(fillLayer)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func layout() {
+        super.layout()
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        let r = bounds.height / 2.0
+        layer?.cornerRadius = r
+        trackLayer.frame = bounds
+        trackLayer.cornerRadius = r
+        trackLayer.backgroundColor = NSColor.quaternaryLabelColor.cgColor
+        updateFillFrame()
+        CATransaction.commit()
+    }
+
+    private func updateFillFrame() {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        let r = bounds.height / 2.0
+        fillLayer.cornerRadius = r
         if fraction > 0.005 {
-            let fillRect = NSRect(x: 0, y: 0, width: min(bounds.width, fillWidth), height: bounds.height)
-            let fillPath = NSBezierPath(roundedRect: fillRect, xRadius: radius, yRadius: radius)
-            fillColor.setFill()
-            fillPath.fill()
+            let fillWidth = max(bounds.height, bounds.width * CGFloat(min(1.0, max(0.0, fraction))))
+            fillLayer.frame = NSRect(x: 0, y: 0, width: min(bounds.width, fillWidth), height: bounds.height)
+            fillLayer.isHidden = false
+        } else {
+            fillLayer.isHidden = true
         }
+        CATransaction.commit()
     }
 }
 
@@ -52,7 +88,7 @@ final class PopoverSurfaceView: NSView {
     }
 }
 
-/// Native AppKit card container that adapts automatically to Light and Dark appearances.
+/// Native AppKit card container that adapts automatically to Light and Dark appearances with zero dirty-rect artifacts.
 final class AdaptiveCardView: NSView {
     override var allowsVibrancy: Bool { false }
 
@@ -60,27 +96,28 @@ final class AdaptiveCardView: NSView {
         super.init(frame: frameRect)
         wantsLayer = true
         layer?.cornerRadius = 10
+        layer?.masksToBounds = true
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override func draw(_ dirtyRect: NSRect) {
+    override var wantsUpdateLayer: Bool { true }
+
+    override func updateLayer() {
         let isDark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
         let fill = isDark
-            ? NSColor(calibratedWhite: 1.0, alpha: 0.07)
-            : NSColor(calibratedWhite: 1.0, alpha: 0.78)
+            ? NSColor(calibratedRed: 0.20, green: 0.20, blue: 0.23, alpha: 0.90).cgColor
+            : NSColor(calibratedRed: 1.0, green: 1.0, blue: 1.0, alpha: 0.92).cgColor
         let stroke = isDark
-            ? NSColor(calibratedWhite: 1.0, alpha: 0.14)
-            : NSColor(calibratedWhite: 0.0, alpha: 0.10)
+            ? NSColor(calibratedWhite: 1.0, alpha: 0.12).cgColor
+            : NSColor(calibratedWhite: 0.0, alpha: 0.08).cgColor
 
-        let path = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5), xRadius: 10, yRadius: 10)
-        fill.setFill()
-        path.fill()
-        stroke.setStroke()
-        path.lineWidth = 1.0
-        path.stroke()
+        layer?.backgroundColor = fill
+        layer?.borderColor = stroke
+        layer?.borderWidth = 1.0
+        layer?.cornerRadius = 10
     }
 }
 
@@ -159,6 +196,7 @@ public final class PopoverViewController: NSViewController {
     public override func viewWillAppear() {
         super.viewWillAppear()
         userManuallyChoseSort = false
+        setActionFeedback("")
         hideSystemCheckbox.state = settings.hideMacOSSystemProcesses ? .on : .off
         updateAlertsToggleButton()
         if let snapshot = coordinator.latestSnapshot {
@@ -272,6 +310,7 @@ public final class PopoverViewController: NSViewController {
         // 5. Batch Selection, Hide System Checkbox & Quit Bar
         selectAllCheckbox.font = NSFont.systemFont(ofSize: 11.5, weight: .medium)
         selectAllCheckbox.refusesFirstResponder = true
+        selectAllCheckbox.setAccessibilityLabel("Select all eligible applications")
         selectAllCheckbox.target = self
         selectAllCheckbox.action = #selector(handleSelectAllClicked)
 
@@ -279,21 +318,24 @@ public final class PopoverViewController: NSViewController {
         hideSystemCheckbox.refusesFirstResponder = true
         hideSystemCheckbox.state = settings.hideMacOSSystemProcesses ? .on : .off
         hideSystemCheckbox.toolTip = "Hide macOS system apps, services, and background daemons from Top 3 Apps and Top 3 Background."
+        hideSystemCheckbox.setAccessibilityLabel("Hide macOS system processes and components")
         hideSystemCheckbox.target = self
         hideSystemCheckbox.action = #selector(handleHideSystemToggled)
 
-        actionFeedbackLabel.font = NSFont.systemFont(ofSize: 11, weight: .regular)
-        actionFeedbackLabel.textColor = .secondaryLabelColor
+        actionFeedbackLabel.font = NSFont.systemFont(ofSize: 11, weight: .medium)
+        actionFeedbackLabel.textColor = .systemBlue
         actionFeedbackLabel.lineBreakMode = .byTruncatingTail
+        actionFeedbackLabel.isHidden = true
 
         quitSelectedButton.bezelStyle = .rounded
         quitSelectedButton.controlSize = .small
         quitSelectedButton.font = NSFont.systemFont(ofSize: 11.5, weight: .semibold)
         quitSelectedButton.isEnabled = false
+        quitSelectedButton.setAccessibilityLabel("Quit all selected applications")
         quitSelectedButton.target = self
         quitSelectedButton.action = #selector(handleQuitSelectedClicked)
 
-        let batchBar = NSStackView(views: [selectAllCheckbox, hideSystemCheckbox, actionFeedbackLabel, NSView(), quitSelectedButton])
+        let batchBar = NSStackView(views: [selectAllCheckbox, hideSystemCheckbox, NSView(), quitSelectedButton])
         batchBar.orientation = .horizontal
         batchBar.alignment = .centerY
         batchBar.spacing = 10
@@ -306,11 +348,13 @@ public final class PopoverViewController: NSViewController {
         activityMonitorBtn.bezelStyle = .rounded
         activityMonitorBtn.controlSize = .small
         activityMonitorBtn.font = NSFont.systemFont(ofSize: 11, weight: .regular)
+        activityMonitorBtn.setAccessibilityLabel("Open Activity Monitor utility")
 
         alertsToggleButton.bezelStyle = .rounded
         alertsToggleButton.controlSize = .small
         alertsToggleButton.font = NSFont.systemFont(ofSize: 11, weight: .medium)
         alertsToggleButton.refusesFirstResponder = true
+        alertsToggleButton.setAccessibilityLabel("Toggle system resource alerts")
         alertsToggleButton.target = self
         alertsToggleButton.action = #selector(handleToggleAlertsClicked)
         updateAlertsToggleButton()
@@ -319,11 +363,13 @@ public final class PopoverViewController: NSViewController {
         settingsBtn.bezelStyle = .rounded
         settingsBtn.controlSize = .small
         settingsBtn.font = NSFont.systemFont(ofSize: 11, weight: .regular)
+        settingsBtn.setAccessibilityLabel("Open Mac Resource Guard Settings")
 
         let quitAppBtn = NSButton(title: "Quit Guard", target: self, action: #selector(handleQuitGuardApp))
         quitAppBtn.bezelStyle = .rounded
         quitAppBtn.controlSize = .small
         quitAppBtn.font = NSFont.systemFont(ofSize: 11, weight: .regular)
+        quitAppBtn.setAccessibilityLabel("Quit Mac Resource Guard utility")
 
         let footerBar = NSStackView(views: [activityMonitorBtn, alertsToggleButton, NSView(), settingsBtn, quitAppBtn])
         footerBar.orientation = .horizontal
@@ -337,16 +383,17 @@ public final class PopoverViewController: NSViewController {
             topAppsHeaderRow,
             rowsStack,
             batchBar,
+            actionFeedbackLabel,
             divider,
             footerBar
         ])
         mainStack.orientation = .vertical
         mainStack.alignment = .leading
-        mainStack.spacing = 11
+        mainStack.spacing = 10
         mainStack.translatesAutoresizingMaskIntoConstraints = false
         rootView.addSubview(mainStack)
 
-        for sub in [headerStack, cardsRow, topAppsHeaderRow, rowsStack, batchBar, divider, footerBar] {
+        for sub in [headerStack, cardsRow, topAppsHeaderRow, rowsStack, batchBar, actionFeedbackLabel, divider, footerBar] {
             sub.widthAnchor.constraint(equalTo: mainStack.widthAnchor).isActive = true
         }
 
@@ -370,9 +417,11 @@ public final class PopoverViewController: NSViewController {
         let title = NSTextField(labelWithString: "CPU LOAD")
         title.font = NSFont.systemFont(ofSize: 10, weight: .bold)
         title.textColor = .secondaryLabelColor
+        title.refusesFirstResponder = true
 
         cpuValueLabel.font = NSFont.monospacedDigitSystemFont(ofSize: 15, weight: .bold)
         cpuValueLabel.textColor = .labelColor
+        cpuValueLabel.refusesFirstResponder = true
 
         cpuBarView.translatesAutoresizingMaskIntoConstraints = false
         cpuBarView.heightAnchor.constraint(equalToConstant: 6).isActive = true
@@ -380,10 +429,12 @@ public final class PopoverViewController: NSViewController {
         cpuDetailLabel.font = NSFont.monospacedDigitSystemFont(ofSize: 10, weight: .regular)
         cpuDetailLabel.textColor = .secondaryLabelColor
         cpuDetailLabel.lineBreakMode = .byTruncatingTail
+        cpuDetailLabel.refusesFirstResponder = true
 
         cpuSecondaryDetailLabel.font = NSFont.monospacedDigitSystemFont(ofSize: 10, weight: .regular)
         cpuSecondaryDetailLabel.textColor = .secondaryLabelColor
         cpuSecondaryDetailLabel.lineBreakMode = .byTruncatingTail
+        cpuSecondaryDetailLabel.refusesFirstResponder = true
 
         let stack = NSStackView(views: [title, cpuValueLabel, cpuBarView, cpuDetailLabel, cpuSecondaryDetailLabel])
         stack.orientation = .vertical
@@ -409,10 +460,12 @@ public final class PopoverViewController: NSViewController {
         let title = NSTextField(labelWithString: "MEMORY PRESSURE")
         title.font = NSFont.systemFont(ofSize: 10, weight: .bold)
         title.textColor = .secondaryLabelColor
+        title.refusesFirstResponder = true
 
         memValueLabel.font = NSFont.systemFont(ofSize: 15, weight: .bold)
         memValueLabel.textColor = .labelColor
         memValueLabel.lineBreakMode = .byTruncatingTail
+        memValueLabel.refusesFirstResponder = true
 
         memBarView.translatesAutoresizingMaskIntoConstraints = false
         memBarView.heightAnchor.constraint(equalToConstant: 6).isActive = true
@@ -420,10 +473,12 @@ public final class PopoverViewController: NSViewController {
         memDetailPrimaryLabel.font = NSFont.monospacedDigitSystemFont(ofSize: 10, weight: .regular)
         memDetailPrimaryLabel.textColor = .secondaryLabelColor
         memDetailPrimaryLabel.lineBreakMode = .byTruncatingTail
+        memDetailPrimaryLabel.refusesFirstResponder = true
 
         memDetailSecondaryLabel.font = NSFont.monospacedDigitSystemFont(ofSize: 10, weight: .regular)
         memDetailSecondaryLabel.textColor = .secondaryLabelColor
         memDetailSecondaryLabel.lineBreakMode = .byTruncatingTail
+        memDetailSecondaryLabel.refusesFirstResponder = true
 
         let stack = NSStackView(views: [title, memValueLabel, memBarView, memDetailPrimaryLabel, memDetailSecondaryLabel])
         stack.orientation = .vertical
@@ -659,37 +714,42 @@ public final class PopoverViewController: NSViewController {
         }
     }
 
+    private func setActionFeedback(_ message: String) {
+        actionFeedbackLabel.stringValue = message
+        actionFeedbackLabel.isHidden = message.isEmpty
+    }
+
     private func handleRowQuitRequested(app: AggregatedAppProcess, isForce: Bool) {
         if isForce {
             confirmAndForceQuit(app: app)
             return
         }
 
-        actionFeedbackLabel.stringValue = "Requesting \(app.displayName) to quit…"
+        setActionFeedback("Requesting \(app.displayName) to quit…")
         terminator.requestGracefulQuit(for: app) { [weak self] result in
             guard let self = self else { return }
             switch result {
             case .terminatedSmoothly, .alreadyExited:
-                self.actionFeedbackLabel.stringValue = "Closed \(app.displayName)."
+                self.setActionFeedback("Closed \(app.displayName).")
                 self.awaitingForceQuitPIDs.remove(app.id)
                 self.selectionModel.setSelected(false, for: app)
                 self.coordinator.requestImmediateRefresh(detailed: true)
             case .awaitingUserOrUnresponsive:
-                self.actionFeedbackLabel.stringValue = "\(app.displayName) is still open (save prompt or busy)."
+                self.setActionFeedback("\(app.displayName) is still open (save prompt or busy).")
                 self.awaitingForceQuitPIDs.insert(app.id)
                 if let snap = self.coordinator.latestSnapshot {
                     self.updateDisplayedApplications(from: snap)
                 }
             case .deniedProtectedProcess(let reason):
-                self.actionFeedbackLabel.stringValue = "Protected: \(reason)"
+                self.setActionFeedback("Protected: \(reason)")
             case .abortedPIDReuseDetected:
-                self.actionFeedbackLabel.stringValue = "Process changed; refreshing list…"
+                self.setActionFeedback("Process changed; refreshing list…")
                 self.coordinator.requestImmediateRefresh(detailed: true)
             case .forceTerminated:
-                self.actionFeedbackLabel.stringValue = "Force quit \(app.displayName)."
+                self.setActionFeedback("Force quit \(app.displayName).")
                 self.coordinator.requestImmediateRefresh(detailed: true)
             case .failed(let reason):
-                self.actionFeedbackLabel.stringValue = "Could not quit: \(reason)"
+                self.setActionFeedback("Could not quit: \(reason)")
             }
         }
     }
@@ -710,15 +770,15 @@ public final class PopoverViewController: NSViewController {
         case .forceTerminated, .alreadyExited:
             awaitingForceQuitPIDs.remove(app.id)
             selectionModel.setSelected(false, for: app)
-            actionFeedbackLabel.stringValue = "Force quit \(app.displayName)."
+            setActionFeedback("Force quit \(app.displayName).")
             coordinator.requestImmediateRefresh(detailed: true)
         case .deniedProtectedProcess(let reason):
-            actionFeedbackLabel.stringValue = "Protected: \(reason)"
+            setActionFeedback("Protected: \(reason)")
         case .abortedPIDReuseDetected:
-            actionFeedbackLabel.stringValue = "PID changed; refreshing…"
+            setActionFeedback("PID changed; refreshing…")
             coordinator.requestImmediateRefresh(detailed: true)
         default:
-            actionFeedbackLabel.stringValue = "Force quit failed."
+            setActionFeedback("Force quit failed.")
         }
     }
 
@@ -726,7 +786,7 @@ public final class PopoverViewController: NSViewController {
         let selected = selectionModel.selectedApplications(in: currentDisplayedApps)
         guard !selected.isEmpty else { return }
 
-        actionFeedbackLabel.stringValue = "Quitting \(selected.count) selected app(s)…"
+        setActionFeedback("Quitting \(selected.count) selected app(s)…")
         let group = DispatchGroup()
         var closedCount = 0
         var stillOpenCount = 0
@@ -752,9 +812,9 @@ public final class PopoverViewController: NSViewController {
         group.notify(queue: .main) { [weak self] in
             guard let self = self else { return }
             if stillOpenCount > 0 {
-                self.actionFeedbackLabel.stringValue = "Closed \(closedCount); \(stillOpenCount) awaiting save/response."
+                self.setActionFeedback("Closed \(closedCount); \(stillOpenCount) awaiting save/response.")
             } else {
-                self.actionFeedbackLabel.stringValue = "Closed \(closedCount) application(s)."
+                self.setActionFeedback("Closed \(closedCount) application(s).")
             }
             self.coordinator.requestImmediateRefresh(detailed: true)
         }
@@ -784,12 +844,12 @@ public final class PopoverViewController: NSViewController {
         let currentlyActive = settings.notificationsEnabled && !settings.doNotDisturbEnabled && !settings.isCurrentlyPaused()
         if currentlyActive {
             settings.notificationsEnabled = false
-            actionFeedbackLabel.stringValue = "Alerts disabled."
+            setActionFeedback("Alerts disabled.")
         } else {
             settings.notificationsEnabled = true
             settings.doNotDisturbEnabled = false
             settings.resumeMonitoring()
-            actionFeedbackLabel.stringValue = "Alerts enabled."
+            setActionFeedback("Alerts enabled.")
         }
         updateAlertsToggleButton()
         if let snap = coordinator.latestSnapshot {

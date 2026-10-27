@@ -30,21 +30,22 @@ public final class AppRowView: NSView {
 
     public override var allowsVibrancy: Bool { false }
 
-    public override func draw(_ dirtyRect: NSRect) {
+    public override var wantsUpdateLayer: Bool { true }
+
+    public override func updateLayer() {
         let isDark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
         let fill = isDark
-            ? NSColor(calibratedWhite: 1.0, alpha: 0.07)
-            : NSColor(calibratedWhite: 1.0, alpha: 0.78)
+            ? NSColor(calibratedRed: 0.20, green: 0.20, blue: 0.23, alpha: 0.90).cgColor
+            : NSColor(calibratedRed: 1.0, green: 1.0, blue: 1.0, alpha: 0.92).cgColor
         let stroke = isDark
-            ? NSColor(calibratedWhite: 1.0, alpha: 0.13)
-            : NSColor(calibratedWhite: 0.0, alpha: 0.09)
+            ? NSColor(calibratedWhite: 1.0, alpha: 0.12).cgColor
+            : NSColor(calibratedWhite: 0.0, alpha: 0.08).cgColor
 
-        let path = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5), xRadius: 8, yRadius: 8)
-        fill.setFill()
-        path.fill()
-        stroke.setStroke()
-        path.lineWidth = 1.0
-        path.stroke()
+        layer?.backgroundColor = fill
+        layer?.borderColor = stroke
+        layer?.borderWidth = 1.0
+        layer?.cornerRadius = 8
+        layer?.masksToBounds = true
     }
 
     private func setupViews() {

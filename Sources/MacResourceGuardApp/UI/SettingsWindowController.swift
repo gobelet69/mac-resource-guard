@@ -348,7 +348,9 @@ public final class SettingsWindowController: NSWindowController {
             cooldownPopup.selectItem(at: idx)
         }
 
-        if let until = settings.pausedUntilDate {
+        if !settings.notificationsEnabled {
+            pauseStatusLabel.stringValue = "Alerts are currently disabled."
+        } else if let until = settings.pausedUntilDate {
             let formatter = DateFormatter()
             formatter.timeStyle = .short
             pauseStatusLabel.stringValue = "Monitoring alerts paused until \(formatter.string(from: until))."

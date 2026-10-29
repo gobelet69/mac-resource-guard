@@ -141,7 +141,8 @@ public final class AppRowView: NSView {
         with app: AggregatedAppProcess,
         sortByMemory: Bool,
         isSelected: Bool,
-        awaitingForceQuit: Bool
+        awaitingForceQuit: Bool,
+        allowsQuit: Bool = true
     ) {
         self.currentApp = app
         self.isAwaitingForceQuit = awaitingForceQuit
@@ -215,11 +216,11 @@ public final class AppRowView: NSView {
             quitButton.bezelColor = nil
         } else if awaitingForceQuit {
             quitButton.title = "Force…"
-            quitButton.isEnabled = true
+            quitButton.isEnabled = allowsQuit
             quitButton.bezelColor = .systemRed
         } else {
             quitButton.title = "Quit"
-            quitButton.isEnabled = true
+            quitButton.isEnabled = allowsQuit
             quitButton.bezelColor = nil
         }
     }

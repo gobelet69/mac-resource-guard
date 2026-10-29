@@ -33,7 +33,7 @@ let package = Package(
         ),
         .testTarget(
             name: "MacResourceGuardTests",
-            dependencies: ["MacResourceGuardCore"],
+            dependencies: ["MacResourceGuardCore", "MacResourceGuardApp"],
             path: "Tests/MacResourceGuardTests"
         )
     ]

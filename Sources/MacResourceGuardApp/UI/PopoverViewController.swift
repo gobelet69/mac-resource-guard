@@ -126,6 +126,7 @@ public final class PopoverViewController: NSViewController {
     private let coordinator: AdaptiveMonitorCoordinator
     private let settings: AppSettingsStore
     private let terminator: SafeAppTerminator
+    private let safetyPolicy: VisualQASafetyPolicy
 
     // Header
     private let statusIconView = NSImageView()
@@ -168,18 +169,26 @@ public final class PopoverViewController: NSViewController {
     private var selectionModel = AppSelectionModel()
     private var awaitingForceQuitPIDs = Set<pid_t>()
     private var currentDisplayedApps: [AggregatedAppProcess] = []
+    private var visualQASnapshot: SystemSnapshot?
+    private var visualQANotificationPresentation: VisualQANotificationPresentation?
 
     public var onOpenSettings: (() -> Void)?
 
     public init(
         coordinator: AdaptiveMonitorCoordinator,
         settings: AppSettingsStore = .shared,
-        terminator: SafeAppTerminator = .shared
+        terminator: SafeAppTerminator = .shared,
+        safetyPolicy: VisualQASafetyPolicy = .production
     ) {
         self.coordinator = coordinator
         self.settings = settings
         self.terminator = terminator
+        self.safetyPolicy = safetyPolicy
         super.init(nibName: nil, bundle: nil)
+    }
+
+    public var allowsDestructiveActions: Bool {
+        safetyPolicy.allowsDestructiveActions
     }
 
     public required init?(coder: NSCoder) {
@@ -199,7 +208,7 @@ public final class PopoverViewController: NSViewController {
         setActionFeedback("")
         hideSystemCheckbox.state = settings.hideMacOSSystemProcesses ? .on : .off
         updateAlertsToggleButton()
-        if let snapshot = coordinator.latestSnapshot {
+        if let snapshot = activeSnapshot {
             applySnapshot(snapshot)
         }
         // Prevent automatic blue focus ring on the first control when popover opens
@@ -370,6 +379,7 @@ public final class PopoverViewController: NSViewController {
         quitAppBtn.controlSize = .small
         quitAppBtn.font = NSFont.systemFont(ofSize: 11, weight: .regular)
         quitAppBtn.setAccessibilityLabel("Quit Mac Resource Guard utility")
+        quitAppBtn.isEnabled = safetyPolicy.allowsDestructiveActions
 
         let footerBar = NSStackView(views: [activityMonitorBtn, alertsToggleButton, NSView(), settingsBtn, quitAppBtn])
         footerBar.orientation = .horizontal
@@ -524,7 +534,13 @@ public final class PopoverViewController: NSViewController {
         statusBadgeLabel.textColor = statusColor
         statusBadgeContainer.layer?.backgroundColor = statusColor.withAlphaComponent(0.16).cgColor
 
-        if !settings.notificationsEnabled {
+        if let presentation = visualQANotificationPresentation {
+            if let prefix = presentation.subtitlePrefix {
+                statusSubtitleLabel.stringValue = "\(prefix) \(snapshot.statusSummary)"
+            } else {
+                statusSubtitleLabel.stringValue = snapshot.statusSummary
+            }
+        } else if !settings.notificationsEnabled {
             statusSubtitleLabel.stringValue = "\(snapshot.statusSummary) • Alerts disabled"
         } else if settings.isCurrentlyPaused() {
             statusSubtitleLabel.stringValue = "Alerts paused temporarily. \(snapshot.statusSummary)"
@@ -590,6 +606,21 @@ public final class PopoverViewController: NSViewController {
         updateDisplayedApplications(from: snapshot)
     }
 
+    public func applyVisualQAScenario(_ scenario: VisualQAScenario) {
+        loadViewIfNeeded()
+        visualQASnapshot = scenario.snapshot
+        visualQANotificationPresentation = scenario.notificationPresentation
+        selectionModel.clearAll()
+        for app in scenario.snapshot.topAppsByCPU where scenario.selectedProcessIDs.contains(app.id) {
+            selectionModel.setSelected(true, for: app)
+        }
+        applySnapshot(scenario.snapshot)
+    }
+
+    private var activeSnapshot: SystemSnapshot? {
+        visualQASnapshot ?? coordinator.latestSnapshot
+    }
+
     private func updateDisplayedApplications(from snapshot: SystemSnapshot) {
         let rawApps: [AggregatedAppProcess]
         if showBackgroundProcesses {
@@ -634,7 +665,8 @@ public final class PopoverViewController: NSViewController {
                         with: app,
                         sortByMemory: sortByMemory,
                         isSelected: selectionModel.isSelected(app.id),
-                        awaitingForceQuit: awaitingForceQuitPIDs.contains(app.id)
+                        awaitingForceQuit: awaitingForceQuitPIDs.contains(app.id),
+                        allowsQuit: safetyPolicy.allowsDestructiveActions
                     )
                 } else {
                     row.isHidden = true
@@ -656,7 +688,7 @@ public final class PopoverViewController: NSViewController {
             quitSelectedButton.isEnabled = false
         } else {
             quitSelectedButton.title = "Quit Selected (\(selectedApps.count))"
-            quitSelectedButton.isEnabled = true
+            quitSelectedButton.isEnabled = safetyPolicy.allowsDestructiveActions
         }
     }
 
@@ -666,7 +698,7 @@ public final class PopoverViewController: NSViewController {
         showBackgroundProcesses = showBackground
         if isViewLoaded {
             categorySegmentedControl.selectedSegment = showBackground ? 1 : 0
-            if let snapshot = coordinator.latestSnapshot {
+            if let snapshot = activeSnapshot {
                 updateDisplayedApplications(from: snapshot)
             }
         }
@@ -675,7 +707,7 @@ public final class PopoverViewController: NSViewController {
     @objc private func handleCategoryChanged() {
         showBackgroundProcesses = (categorySegmentedControl.selectedSegment == 1)
         selectionModel.clearAll()
-        if let snapshot = coordinator.latestSnapshot {
+        if let snapshot = activeSnapshot {
             updateDisplayedApplications(from: snapshot)
         }
     }
@@ -683,14 +715,14 @@ public final class PopoverViewController: NSViewController {
     @objc private func handleSortChanged() {
         userManuallyChoseSort = true
         sortByMemory = (sortSegmentedControl.selectedSegment == 1)
-        if let snapshot = coordinator.latestSnapshot {
+        if let snapshot = activeSnapshot {
             updateDisplayedApplications(from: snapshot)
         }
     }
 
     private func handleRowSelectionToggled(app: AggregatedAppProcess, isSelected: Bool) {
         selectionModel.setSelected(isSelected, for: app)
-        if let snapshot = coordinator.latestSnapshot {
+        if let snapshot = activeSnapshot {
             updateDisplayedApplications(from: snapshot)
         }
     }
@@ -701,7 +733,7 @@ public final class PopoverViewController: NSViewController {
         } else {
             selectionModel.clearAll()
         }
-        if let snapshot = coordinator.latestSnapshot {
+        if let snapshot = activeSnapshot {
             updateDisplayedApplications(from: snapshot)
         }
     }
@@ -709,7 +741,7 @@ public final class PopoverViewController: NSViewController {
     @objc private func handleHideSystemToggled() {
         settings.hideMacOSSystemProcesses = (hideSystemCheckbox.state == .on)
         selectionModel.clearAll()
-        if let snapshot = coordinator.latestSnapshot {
+        if let snapshot = activeSnapshot {
             updateDisplayedApplications(from: snapshot)
         }
     }
@@ -720,6 +752,10 @@ public final class PopoverViewController: NSViewController {
     }
 
     private func handleRowQuitRequested(app: AggregatedAppProcess, isForce: Bool) {
+        guard safetyPolicy.allowsDestructiveActions else {
+            setActionFeedback("Visual QA mode — quitting is disabled.")
+            return
+        }
         if isForce {
             confirmAndForceQuit(app: app)
             return
@@ -755,6 +791,10 @@ public final class PopoverViewController: NSViewController {
     }
 
     private func confirmAndForceQuit(app: AggregatedAppProcess) {
+        guard safetyPolicy.allowsDestructiveActions else {
+            setActionFeedback("Visual QA mode — force quit is disabled.")
+            return
+        }
         let alert = NSAlert()
         alert.alertStyle = .warning
         alert.messageText = "Force Quit \(app.displayName)?"
@@ -783,6 +823,10 @@ public final class PopoverViewController: NSViewController {
     }
 
     @objc private func handleQuitSelectedClicked() {
+        guard safetyPolicy.allowsDestructiveActions else {
+            setActionFeedback("Visual QA mode — quitting is disabled.")
+            return
+        }
         let selected = selectionModel.selectedApplications(in: currentDisplayedApps)
         guard !selected.isEmpty else { return }
 

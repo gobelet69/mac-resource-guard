@@ -14,35 +14,45 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
 
         applyAppearanceOverrideIfRequested()
+        let visualQAScenario = VisualQAScenario.launchScenario(in: CommandLine.arguments)
+        let safetyPolicy: VisualQASafetyPolicy = visualQAScenario == nil ? .production : .visualQAMode
 
         let monitor = AdaptiveMonitorCoordinator(settings: settings)
         self.coordinator = monitor
 
-        let barController = StatusBarController(coordinator: monitor, settings: settings)
+        let barController = StatusBarController(
+            coordinator: monitor,
+            settings: settings,
+            safetyPolicy: safetyPolicy
+        )
         barController.onOpenSettings = { [weak self] in
             self?.showSettingsWindow()
         }
         self.statusBarController = barController
 
-        NotificationManager.shared.configureIfPossible()
-        NotificationManager.shared.onUserClickedNotification = { [weak self] in
-            self?.statusBarController.showPopover()
+        if let scenario = visualQAScenario {
+            barController.applyVisualQAScenario(scenario)
+        } else {
+            NotificationManager.shared.configureIfPossible()
+            NotificationManager.shared.onUserClickedNotification = { [weak self] in
+                self?.statusBarController.showPopover()
+            }
+
+            monitor.onSnapshotUpdate = { [weak self] snapshot in
+                self?.statusBarController.handleSnapshot(snapshot)
+            }
+
+            monitor.onAlertTriggered = { [weak self] alert, snapshot in
+                self?.statusBarController.handleSnapshot(snapshot)
+                NotificationManager.shared.postAlertNotification(alert)
+            }
+
+            if settings.startMonitoringAutomatically {
+                monitor.start()
+            }
         }
 
-        monitor.onSnapshotUpdate = { [weak self] snapshot in
-            self?.statusBarController.handleSnapshot(snapshot)
-        }
-
-        monitor.onAlertTriggered = { [weak self] alert, snapshot in
-            self?.statusBarController.handleSnapshot(snapshot)
-            NotificationManager.shared.postAlertNotification(alert)
-        }
-
-        if settings.startMonitoringAutomatically {
-            monitor.start()
-        }
-
-        handleQALaunchArgumentsIfPresent()
+        handleQALaunchArgumentsIfPresent(scenario: visualQAScenario)
     }
 
     public func applicationWillTerminate(_ notification: Notification) {
@@ -67,10 +77,13 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func handleQALaunchArgumentsIfPresent() {
+    private func handleQALaunchArgumentsIfPresent(scenario: VisualQAScenario?) {
         let args = CommandLine.arguments
-        if args.contains("--open-popover") {
+        if scenario != nil || args.contains("--open-popover") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
+                if scenario != nil {
+                    NSApp.activate(ignoringOtherApps: true)
+                }
                 self?.statusBarController.showPopover()
             }
         }
@@ -85,6 +98,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             if arg.hasPrefix("--export-popover-png=") {
                 let outputPath = String(arg.dropFirst("--export-popover-png=".count))
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                    if let scenario {
+                        self?.statusBarController.applyVisualQAScenario(scenario)
+                        NSApp.activate(ignoringOtherApps: true)
+                    }
                     self?.statusBarController.showPopover()
                     if args.contains("--show-background") {
                         self?.statusBarController.setShowBackgroundProcesses(true)

@@ -69,11 +69,17 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Optional Visual QA Automation Hooks
 
     private func applyAppearanceOverrideIfRequested() {
-        let args = CommandLine.arguments
-        if args.contains("--appearance=dark") {
-            NSApp.appearance = NSAppearance(named: .darkAqua)
-        } else if args.contains("--appearance=light") {
+        switch VisualQAAppearance.launchAppearance(in: CommandLine.arguments) {
+        case .light:
             NSApp.appearance = NSAppearance(named: .aqua)
+        case .dark:
+            NSApp.appearance = NSAppearance(named: .darkAqua)
+        case .highContrastLight:
+            NSApp.appearance = NSAppearance(named: .accessibilityHighContrastAqua)
+        case .highContrastDark:
+            NSApp.appearance = NSAppearance(named: .accessibilityHighContrastDarkAqua)
+        case nil:
+            break
         }
     }
 

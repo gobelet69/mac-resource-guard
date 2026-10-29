@@ -1,5 +1,22 @@
 import Foundation
 
+public enum VisualQAAppearance: String, Sendable {
+    case light
+    case dark
+    case highContrastLight
+    case highContrastDark
+
+    public static func launchAppearance(in arguments: [String]) -> VisualQAAppearance? {
+        let prefix = "--appearance="
+        let values = arguments.compactMap { argument -> String? in
+            guard argument.hasPrefix(prefix) else { return nil }
+            return String(argument.dropFirst(prefix.count))
+        }
+        guard values.count == 1 else { return nil }
+        return VisualQAAppearance(rawValue: values[0])
+    }
+}
+
 public enum VisualQANotificationPresentation: Equatable, Sendable {
     case enabled
     case disabled
@@ -78,7 +95,7 @@ public enum VisualQAScenario: String, CaseIterable, Sendable {
         let state: (cpu: Double, user: Double, system: Double, severity: ResourceSeverity, kind: PressureResourceKind, pressure: MemoryPressureLevel, summary: String)
         switch self {
         case .highCPU:
-            state = (94.0, 71.0, 23.0, .critical, .cpu, .normal, "CPU utilization is critically high.")
+            state = (88.0, 66.0, 22.0, .elevated, .cpu, .normal, "CPU utilization is elevated.")
         case .memoryPressure:
             state = (42.0, 30.0, 12.0, .critical, .memory, .critical, "Memory pressure is critical with active compression.")
         default:

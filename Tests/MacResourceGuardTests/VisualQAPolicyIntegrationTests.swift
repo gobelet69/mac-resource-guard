@@ -25,6 +25,25 @@ final class VisualQAPolicyIntegrationTests: XCTestCase {
         XCTAssertFalse(quitButtons.isEmpty)
         XCTAssertTrue(quitButtons.allSatisfy { !$0.isEnabled })
     }
+
+    func testSelectedRowExposesStateAndUsesDistinctStaticCardStyling() {
+        let app = VisualQAScenario.normal.snapshot.topAppsByCPU[0]
+        let row = AppRowView()
+        row.appearance = NSAppearance(named: .aqua)
+
+        row.configure(with: app, sortByMemory: false, isSelected: false, awaitingForceQuit: false)
+        row.updateLayer()
+        let neutralBorder = row.layer?.borderColor
+        let neutralFill = row.layer?.backgroundColor
+        XCTAssertEqual(row.accessibilityValue() as? String, "Not selected")
+
+        row.configure(with: app, sortByMemory: false, isSelected: true, awaitingForceQuit: false)
+        row.updateLayer()
+        XCTAssertEqual(row.accessibilityValue() as? String, "Selected")
+        XCTAssertNotEqual(row.layer?.borderColor, neutralBorder)
+        XCTAssertNotEqual(row.layer?.backgroundColor, neutralFill)
+        XCTAssertEqual(row.layer?.borderWidth, 1.0)
+    }
 }
 
 private extension NSView {

@@ -34,6 +34,14 @@ final class VisualQAScenarioTests: XCTestCase {
         XCTAssertNil(VisualQAScenario.launchScenario(in: ["MacResourceGuard", "visual-qa-scenario=normal"]))
     }
 
+    func testAppearanceParserSupportsLightDarkAndHighContrastVariants() {
+        XCTAssertEqual(VisualQAAppearance.launchAppearance(in: ["app", "--appearance=light"]), .light)
+        XCTAssertEqual(VisualQAAppearance.launchAppearance(in: ["app", "--appearance=dark"]), .dark)
+        XCTAssertEqual(VisualQAAppearance.launchAppearance(in: ["app", "--appearance=highContrastLight"]), .highContrastLight)
+        XCTAssertEqual(VisualQAAppearance.launchAppearance(in: ["app", "--appearance=highContrastDark"]), .highContrastDark)
+        XCTAssertNil(VisualQAAppearance.launchAppearance(in: ["app", "--appearance=unknown"]))
+    }
+
     func testEveryScenarioUsesOnlySanitizedNonRoutableApplications() {
         let expectedNames = ["Aurora Editor", "Northstar Browser", "Canvas Studio"]
 
@@ -59,9 +67,9 @@ final class VisualQAScenarioTests: XCTestCase {
         XCTAssertEqual(VisualQAScenario.normal.snapshot.primaryPressureKind, .none)
         XCTAssertEqual(VisualQAScenario.normal.snapshot.memory.pressureLevel, .normal)
 
-        XCTAssertEqual(VisualQAScenario.highCPU.snapshot.severity, .critical)
+        XCTAssertEqual(VisualQAScenario.highCPU.snapshot.severity, .elevated)
         XCTAssertEqual(VisualQAScenario.highCPU.snapshot.primaryPressureKind, .cpu)
-        XCTAssertEqual(VisualQAScenario.highCPU.snapshot.cpuTotalPercent, 94.0)
+        XCTAssertEqual(VisualQAScenario.highCPU.snapshot.cpuTotalPercent, 88.0)
 
         XCTAssertEqual(VisualQAScenario.memoryPressure.snapshot.severity, .critical)
         XCTAssertEqual(VisualQAScenario.memoryPressure.snapshot.primaryPressureKind, .memory)

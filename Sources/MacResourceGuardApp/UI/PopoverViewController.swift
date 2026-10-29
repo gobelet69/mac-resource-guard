@@ -513,17 +513,29 @@ public final class PopoverViewController: NSViewController {
         guard isViewLoaded else { return }
 
         // 1. Update Header Status
-        let statusColor: NSColor
+        let appearance: ResourceStatusAppearance = view.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            ? .dark
+            : .light
+        let palette = ResourceStatusPalette.colors(for: snapshot.severity, appearance: appearance)
+        let badgeForeground = NSColor(
+            calibratedRed: palette.foreground.red,
+            green: palette.foreground.green,
+            blue: palette.foreground.blue,
+            alpha: 1.0
+        )
+        let statusColor = NSColor(
+            calibratedRed: palette.backgroundTint.red,
+            green: palette.backgroundTint.green,
+            blue: palette.backgroundTint.blue,
+            alpha: 1.0
+        )
         let symbolName: String
         switch snapshot.severity {
         case .normal:
-            statusColor = .systemGreen
             symbolName = "checkmark.shield.fill"
         case .elevated:
-            statusColor = .systemOrange
             symbolName = "exclamationmark.triangle.fill"
         case .critical:
-            statusColor = .systemRed
             symbolName = "exclamationmark.octagon.fill"
         }
 
@@ -531,8 +543,8 @@ public final class PopoverViewController: NSViewController {
         statusIconView.contentTintColor = statusColor
         statusTitleLabel.stringValue = snapshot.primaryPressureKind.displayName
         statusBadgeLabel.stringValue = snapshot.severity.badgeText
-        statusBadgeLabel.textColor = statusColor
-        statusBadgeContainer.layer?.backgroundColor = statusColor.withAlphaComponent(0.16).cgColor
+        statusBadgeLabel.textColor = badgeForeground
+        statusBadgeContainer.layer?.backgroundColor = statusColor.withAlphaComponent(palette.backgroundOpacity).cgColor
 
         if let presentation = visualQANotificationPresentation {
             if let prefix = presentation.subtitlePrefix {

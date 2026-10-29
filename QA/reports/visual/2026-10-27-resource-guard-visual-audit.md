@@ -76,6 +76,8 @@ Expected correction: explicit QA-only command-line scenarios that inject synthet
 
 `PopoverSurfaceView` draws a 96%-opaque fill and disables vibrancy. This is visually consistent in exported content but cannot demonstrate the requested premium native translucency. A single root `NSVisualEffectView` using the popover material would be more native than the custom surface, but it must be accepted only after real compositor screenshots and a before/after resource check. Nested effects are explicitly out of scope.
 
+Rechecked on 2026-10-29 with a minimal 10 × 10 px `screencapture` permission probe: macOS still returned `could not create image from rect`. The material spike was therefore not implemented. The current custom surface remains intentional until compositor-level before/after evidence is available.
+
 ### P2 — Segmented selection is inconsistent in non-key capture
 
 Some light captures show the selected segment only as a slightly darker gray while dark/key captures use the blue accent. The export hook shows the popover without reliably activating the accessory application, so it may be capturing AppKit's inactive control state rather than a product defect.

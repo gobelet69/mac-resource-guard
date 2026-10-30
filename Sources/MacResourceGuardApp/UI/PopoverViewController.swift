@@ -807,12 +807,7 @@ public final class PopoverViewController: NSViewController {
             setActionFeedback("Visual QA mode — force quit is disabled.")
             return
         }
-        let alert = NSAlert()
-        alert.alertStyle = .warning
-        alert.messageText = "Force Quit \(app.displayName)?"
-        alert.informativeText = "If \(app.displayName) has unsaved changes, forcing it to quit will lose those changes. Prefer closing any open Save dialogs in the app first."
-        alert.addButton(withTitle: "Force Quit")
-        alert.addButton(withTitle: "Cancel")
+        let alert = ForceQuitAlertFactory.makeAlert(displayName: app.displayName)
 
         let response = alert.runModal()
         guard response == .alertFirstButtonReturn else { return }

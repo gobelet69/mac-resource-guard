@@ -139,6 +139,40 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                         }
                     }
                 }
+            } else if arg.hasPrefix("--export-force-quit-png=") {
+                guard scenario == .forceQuitConfirmation else { continue }
+                let outputPath = String(arg.dropFirst("--export-force-quit-png=".count))
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    NSApp.activate(ignoringOtherApps: true)
+                    let alert = ForceQuitAlertFactory.makeAlert(displayName: "Synthetic Application")
+                    if let appAppearance = NSApp.appearance {
+                        alert.window.appearance = appAppearance
+                    }
+                    alert.layout()
+                    alert.window.center()
+                    alert.window.makeKeyAndOrderFront(nil)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        guard let contentView = alert.window.contentView else { return }
+                        contentView.wantsLayer = true
+                        contentView.layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
+                        Self.saveViewPNG(view: contentView, to: outputPath)
+                        alert.window.orderOut(nil)
+                        if args.contains("--quit-after-export") {
+                            NSApp.terminate(nil)
+                        }
+                    }
+                }
+            } else if arg.hasPrefix("--export-status-item-png=") {
+                guard let scenario else { continue }
+                let outputPath = String(arg.dropFirst("--export-status-item-png=".count))
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                    guard let self else { return }
+                    self.statusBarController.applyVisualQAScenario(scenario)
+                    Self.saveViewPNG(view: self.statusBarController.statusButtonForVisualQA, to: outputPath)
+                    if args.contains("--quit-after-export") {
+                        NSApp.terminate(nil)
+                    }
+                }
             }
         }
     }

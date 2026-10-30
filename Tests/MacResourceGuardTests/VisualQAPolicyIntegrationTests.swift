@@ -44,6 +44,27 @@ final class VisualQAPolicyIntegrationTests: XCTestCase {
         XCTAssertNotEqual(row.layer?.backgroundColor, neutralFill)
         XCTAssertEqual(row.layer?.borderWidth, 1.0)
     }
+
+    func testForceQuitAlertFactoryBuildsWarningWithoutProcessIdentity() {
+        let alert = ForceQuitAlertFactory.makeAlert(displayName: "Synthetic Application")
+
+        XCTAssertEqual(alert.alertStyle, .warning)
+        XCTAssertEqual(alert.messageText, "Force Quit Synthetic Application?")
+        XCTAssertTrue(alert.informativeText.contains("unsaved changes"))
+        XCTAssertEqual(alert.buttons.map(\.title), ["Force Quit", "Cancel"])
+    }
+
+    func testStatusItemExposesTheRealButtonForVisualQAExport() {
+        let controller = StatusBarController(
+            coordinator: AdaptiveMonitorCoordinator(),
+            safetyPolicy: .visualQAMode
+        )
+        controller.applyVisualQAScenario(.highCPU)
+
+        let button = controller.statusButtonForVisualQA
+        XCTAssertNotNil(button.image)
+        XCTAssertEqual(button.image?.accessibilityDescription, "Elevated Resource Usage")
+    }
 }
 
 private extension NSView {

@@ -1,112 +1,114 @@
 # Resource Guard visual audit
 
-**Date:** 2026-10-27  
-**Mode:** Audit + Fix (baseline complete; remediation pending plan approval)  
-**Status:** BLOCKED for compositor-level verification; WARN for captured application content
+**Audit started:** 2026-10-27
 
-## Scope and safety
+**Remediation verified:** 2026-10-30
 
-The Release application was built and launched from isolated derived data under `/tmp`. Four real AppKit popover views were captured in light/dark and application/background modes. Those raw captures remain in `/tmp` because they contain local process names and are not suitable for publication. No user application was terminated, no notification was sent, and no release was published.
-Mass Print visual audit synthetic document: 01 Cover Mass Print visual audit synthetic document: 01 Cover Letter.txt
-Letter.txt
+**Mode:** Audit + Fix
 
-The macOS screen-capture API returned `could not create image from rect`, and the accessibility/UI-control surface could not attach to this menu-bar-only application. Therefore the actual menu bar item, window shadow, compositor translucency, hover/focus state, and modal quit confirmation remain blocked rather than passed.
+**Status:** WARN — application content corrected and verified; compositor-only states remain BLOCKED
+
+## Outcome
+
+Resource Guard now has deterministic, sanitized visual-QA scenarios for normal, elevated CPU, critical memory pressure, top-three applications, single and multiple selection, notification presentation states, and force-quit confirmation. All scenarios bypass live process enumeration, monitoring, notifications, and destructive actions. The Release application produced the committed light/dark captures below.
+
+The small status badge now uses appearance-specific foreground and background colors that meet the 4.5:1 small-text target. Selected rows add a checkbox, an accent-tinted fill, and a 1 pt border, so selection does not rely on color alone. Visual-state updates disable implicit Core Animation actions.
+
+No user application was terminated, no notification was sent, no private process name was committed, and no release was built or published.
 
 ## Visual direction
 
-Resource Guard should remain a compact native instrument rather than a decorative dashboard.
+Resource Guard remains a compact native instrument rather than a decorative dashboard:
 
-- **Palette:** system surface light `#F5F5F7`, system surface dark `#2C2C2E`, healthy `#34C759`, warning `#FF9F0A`, critical `#FF453A`, interaction `#0A84FF`; semantic adaptive foreground variants must meet contrast requirements.
-- **Type:** SF Pro for labels and actions; monospaced SF digits only for changing measurements.
-- **Layout:** left-aligned status hierarchy, two equal metric cards, one segmented filter row, three process rows, one batch-action row, one compact footer.
+- system typography and controls;
+- semantic green, orange, and red reserved for status;
+- two equal metric cards, a segmented filter row, three process rows, one batch-action row, and a compact footer;
+- no gradient, nested blur, or decorative animation;
+- fixed 424 × 476 pt popover, exported at 2× (848 × 952 px).
 
-```text
-┌ status icon  status title                  state ┐
-│ status explanation                               │
-├ CPU card ───────────┬ memory card ──────────────┤
-├ category segments ──┴────────── sort segments ──┤
-│ □ app                                       metric │
-│ □ app                                       metric │
-│ □ app                                       metric │
-├ select all      hide system       quit selected ┤
-└ Activity Monitor   Alerts   Settings   Quit Guard┘
-```
-
-The initial design review rejected adding an iridescent gradient or nested blur layers: they would dilute status meaning and increase rendering cost. The distinctive element remains the live, color-coded system state; everything else stays quiet and native.
+The root remains the existing 96%-opaque lightweight custom surface. A native material change was intentionally not made because Screen Recording permission is unavailable, so its shadow, transparency, and energy impact could not be compared safely.
 
 ## State matrix
 
-| State | Light | Dark | Actual runtime evidence | Result |
-|---|---|---|---|---|
-| Menu bar icon | — | — | Screen Recording unavailable | BLOCKED |
-| Normal popover | Captured | Captured | Real Release app, background-process view | PASS for content only |
-| High CPU | Not safely reached | Not safely reached | No deterministic QA state exists | BLOCKED |
-| Elevated memory pressure | Captured | Captured | Real kernel elevated state | PASS for content only |
-| Top 3 applications | Captured | Captured | Real local process enumeration; raw files kept private | WARN, unsanitized |
-| Application selection | Not captured | Not captured | No safe automation hook | BLOCKED |
-| Multiple selection | Not captured | Not captured | No safe automation hook | BLOCKED |
-| Quit confirmation | Not captured | Not captured | UI automation unavailable; no termination attempted | BLOCKED |
-| Notifications disabled | Captured | Captured | Subtitle and footer action visible | PASS for content only |
-| Notifications enabled/paused/DND | Not captured | Not captured | No deterministic QA state exists | BLOCKED |
-| Window transparency/shadow | — | — | View export cannot verify compositor output | BLOCKED |
-| Long application name | Captured | Captured | `1Password-Crash-Handler` fit without collision | PASS |
-| Compact/responsive layout | Fixed 424 × 476 pt | Fixed 424 × 476 pt | Popover is intentionally non-resizable | PASS at designed size only |
+| Requested state | Evidence | Result |
+|---|---|---|
+| Menu bar icon | Real `NSStatusBarButton` content in normal/elevated/critical states | WARN — button content passes; placement and surrounding menu bar are BLOCKED |
+| Normal popover | Sanitized Release capture, light and dark | PASS for application content |
+| High CPU | Synthetic 88% elevated state, Release capture | PASS for application content |
+| High memory pressure | Synthetic critical pressure with compression and swap, Release capture | PASS for application content |
+| Top 3 resource-consuming apps | Aurora Editor, Northstar Browser, Canvas Studio; CPU and memory sorts | PASS, sanitized |
+| Application selection | Checkbox plus row fill and border | PASS |
+| Multiple selection | Two selected rows and count in batch action | PASS |
+| Quit confirmation | Real `NSAlert` content using synthetic identity and no confirm handler | PASS for alert content; window placement/shadow BLOCKED |
+| Notification states | Enabled, disabled, paused, and Do Not Disturb presentation | PASS for in-app state; no OS notification was sent |
+| Light and dark | Full application-content matrix | PASS |
+| Increased contrast | High-contrast light and dark Release captures | PASS |
+| Graphite accent | Selection remains legible without color alone | WARN — actual Graphite appearance could not be forced process-locally |
+| Transparency and shadow | Screen capture API unavailable | BLOCKED |
+| Hover, keyboard focus, VoiceOver traversal | UI-control surface could not attach to the menu-bar-only app | BLOCKED |
+| Responsive/scale | 424 × 476 pt layout and 848 × 952 px Retina output inspected | PASS at the designed fixed size only |
 
-## Confirmed findings
+## Curated screenshots
 
-### P1 — Status badge contrast is insufficient in light appearance
+All files below were exported by the Release application from inert fixtures:
 
-The 11 pt semibold `Normal`, `Elevated`, and critical labels use their semantic system color over the same color at 16% opacity. Measured against the current popover surface, the foreground/background ratios are only 1.77:1 green, 1.84:1 orange, and 2.61:1 red in light appearance. Dark green and orange pass at 5.45:1 and 5.02:1, but dark red reaches only 3.67:1. These values are below the 4.5:1 target for small text. The palette needs adaptive, darker semantic foregrounds in light appearance and a corrected critical foreground in dark appearance.
+- [`popover-light-normal.png`](screenshots/2026-10-27/popover-light-normal.png)
+- [`popover-dark-normal.png`](screenshots/2026-10-27/popover-dark-normal.png)
+- [`popover-light-high-cpu.png`](screenshots/2026-10-27/popover-light-high-cpu.png)
+- [`popover-dark-memory-pressure.png`](screenshots/2026-10-27/popover-dark-memory-pressure.png)
+- [`popover-light-single-selection.png`](screenshots/2026-10-27/popover-light-single-selection.png)
+- [`popover-dark-multiple-selection.png`](screenshots/2026-10-27/popover-dark-multiple-selection.png)
+- [`notification-light-enabled.png`](screenshots/2026-10-27/notification-light-enabled.png)
+- [`notification-dark-paused.png`](screenshots/2026-10-27/notification-dark-paused.png)
+- [`notification-light-do-not-disturb.png`](screenshots/2026-10-27/notification-light-do-not-disturb.png)
+- [`quit-confirmation-light.png`](screenshots/2026-10-27/quit-confirmation-light.png)
+- [`quit-confirmation-dark.png`](screenshots/2026-10-27/quit-confirmation-dark.png)
+- [`status-item-light-normal.png`](screenshots/2026-10-27/status-item-light-normal.png)
+- [`status-item-dark-elevated.png`](screenshots/2026-10-27/status-item-dark-elevated.png)
+- [`status-item-light-critical.png`](screenshots/2026-10-27/status-item-light-critical.png)
+- [`popover-high-contrast-light.png`](screenshots/2026-10-27/popover-high-contrast-light.png)
+- [`popover-high-contrast-dark.png`](screenshots/2026-10-27/popover-high-contrast-dark.png)
 
-Reproduction: launch with `--appearance=light --export-popover-png=...`; inspect the status badge at 100%.
+## Corrected findings
 
-### P1 — Selected rows have no row-level visual state
+### Status badge contrast
 
-`AppRowView.configure(... isSelected:)` updates only the checkbox. The card background and border are identical for selected and unselected applications. This makes multi-selection difficult to scan and weakens confidence before a batch quit.
+Before remediation, the small semantic labels measured 1.77:1 green, 1.84:1 orange, and 2.61:1 red in light appearance; dark red measured 3.67:1. The adaptive palette tests now require all normal, elevated, and critical pairs in light and dark to be at least 4.5:1.
 
-Expected correction: a subtle adaptive accent tint and border on selected rows, with no animation and no extra blur.
+### Selection clarity
 
-### P1 — Visual QA cannot produce sanitized deterministic states
+Before remediation, only the checkbox changed. Selected rows now have a visible fill and border in addition to the checked control, with an accessibility value of `Selected` or `Not selected`.
 
-Current screenshot hooks expose live process names, icons, process counts, and memory usage. They cannot render high CPU, critical memory, single/multiple selection, confirmation, or notification variants deterministically. Existing local screenshots must not be treated as publishable evidence.
+### Deterministic and private QA
 
-Expected correction: explicit QA-only command-line scenarios that inject synthetic snapshots and inert sample applications, never enumerate private processes for curated captures, never send notifications, and never terminate a PID.
+Before remediation, screenshots exposed local process names and could not reach several requested states. The explicit `--visual-qa-scenario` path now injects three fictional applications with invalid negative PIDs, disables quit controls before lookup, bypasses monitoring and notification configuration, and never installs a force-quit handler for the synthetic alert.
 
-### P2 — The popover surface is nearly opaque custom drawing
+### Active control state
 
-`PopoverSurfaceView` draws a 96%-opaque fill and disables vibrancy. This is visually consistent in exported content but cannot demonstrate the requested premium native translucency. A single root `NSVisualEffectView` using the popover material would be more native than the custom surface, but it must be accepted only after real compositor screenshots and a before/after resource check. Nested effects are explicitly out of scope.
+The application activates only for explicit visual-QA launches before export, allowing AppKit to draw active segmented controls without changing normal background operation.
 
-Rechecked on 2026-10-29 with a minimal 10 × 10 px `screencapture` permission probe: macOS still returned `could not create image from rect`. The material spike was therefore not implemented. The current custom surface remains intentional until compositor-level before/after evidence is available.
+## Lightweightness evidence
 
-### P2 — Segmented selection is inconsistent in non-key capture
+The styling correction adds only static color resolution and border/fill changes; it adds no timers, blur layers, observers, or animation loops.
 
-Some light captures show the selected segment only as a slightly darker gray while dark/key captures use the blue accent. The export hook shows the popover without reliably activating the accessory application, so it may be capturing AppKit's inactive control state rather than a product defect.
+Controlled dark multiple-selection measurement, using only an audit-owned synthetic process:
 
-Expected correction: activate only in the explicit visual-QA launch path before capture. Do not force activation during normal background use.
+| Measurement | Before styling | After styling | Delta |
+|---|---:|---:|---:|
+| `footprint` | 39,388,120 B | 39,470,016 B | +81,896 B (+0.21%) |
+| Stabilized CPU | 0.0% | 0.0% | 0.0 pp |
 
-## Checks that passed in captured content
+A final Release sanity run after all QA hooks reported a 37 MB footprint and five consecutive 0.0% CPU samples. RSS fluctuated during AppKit startup and is not used for the conclusion. Only the recorded audit PID was signalled after measurement.
 
-- Two metric cards share height, internal baselines, corner radius, and padding.
-- Process icons, names, secondary metadata, numeric columns, and Quit buttons align consistently.
-- Long names truncate or fit without pushing the required metric/actions column.
-- Normal, elevated, CPU, memory, and selection colors are not used decoratively outside their meaning.
-- Dark-mode text, card borders, progress tracks, and secondary labels remain legible.
-- The footer is dense but balanced at 424 pt; all five actions remain visible.
-- No clipping, overlap, stale dirty rectangle, or font-smoothing box was visible in the four current captures.
-- The current layer-backed bars/cards avoid per-frame custom drawing and implicit animation.
+## Verification and limitations
 
-## Verification evidence
+- SwiftPM test suite: 26 tests, 0 failures.
+- Xcode macOS test action: 26 tests, 0 failures; `TEST SUCCEEDED`.
+- Xcode Release build with derived data under `/tmp`: `BUILD SUCCEEDED`.
+- Release exports: 16 committed sanitized PNGs; popovers are 848 × 952 px, alerts 520 × 564 px, and status-button content 138–140 × 44–46 px.
+- A minimal `screencapture -x -R0,0,10,10` probe still returns `could not create image from rect`. Therefore menu-bar context, native window shadow/material, hover, and modal placement are not claimed as passed.
+- The installed CoreSimulator is older than Xcode, but macOS builds succeed; no simulator is involved in this audit.
 
-- Fresh Release build: `xcodebuild ... -configuration Release -derivedDataPath /tmp/mrg-visual-dd CODE_SIGNING_ALLOWED=NO build` → `BUILD SUCCEEDED`.
-- Real runtime captures: `/tmp/mrg-visual-light-apps.png`, `/tmp/mrg-visual-dark-apps.png`, `/tmp/mrg-visual-light-background.png`, `/tmp/mrg-visual-dark-background.png` (848 × 952 px, private raw evidence).
-- Badge contrast calculation: current semantic sRGB foreground over its 16%-tinted badge on the custom light/dark surface; light green 1.77:1, orange 1.84:1, red 2.61:1; dark green 5.45:1, orange 5.02:1, red 3.67:1.
-- Controlled audit child processes exited or were signalled only by their recorded audit PIDs.
+## Remaining follow-up
 
-## Exit criteria
-
-- Deterministic sanitized scenarios cover every requested state in light and dark.
-- Badge foreground/background contrast is measured and passes for small text.
-- Single and multiple selection are obvious without relying on color alone.
-- Real Screen Recording captures verify the menu item, native popover shadow/material, modal confirmation, and notification states.
-- Before/after CPU and footprint show no meaningful regression from visual effects.
-- Release build and full test suite pass; no release or push occurs.
+Grant Screen Recording to the audit host, then recapture the actual menu bar and composed popover/alert windows in light, dark, and Graphite appearances. Only after that evidence and a repeated resource comparison should the custom root surface be reconsidered.

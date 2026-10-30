@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		1D00E7463E33261680E38AF5 /* PopoverViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66167D9837C43070AB993092 /* PopoverViewController.swift */; };
 		2945BFE2BF8F4B67134EE135 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DF05761AD621B9EA347359A /* StatusBarController.swift */; };
+		2B5B6781092E525838954140 /* ForceQuitAlertFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC732F1582D17C825D0506A3 /* ForceQuitAlertFactory.swift */; };
 		327E5EEA2472F8A1EA6393DC /* AppRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7901C56ECD68F283CECF161A /* AppRowView.swift */; };
 		375146F2ACD9EA9960B7AC71 /* SystemMetricsSampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 137375EC4B0D3C99897A2C46 /* SystemMetricsSampler.swift */; };
 		56591E4FC613F077CED5EF85 /* AppSelectionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E46B7D1D2987C1609149FA35 /* AppSelectionModel.swift */; };
@@ -58,6 +59,7 @@
 		99B8B02F8F25F35EBF60C8A6 /* VisualQAScenarioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualQAScenarioTests.swift; sourceTree = "<group>"; };
 		9DC9A30354023AB7A249DF11 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		A0FFA575337AFE9CF89A43F4 /* MacResourceGuardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacResourceGuardTests.swift; sourceTree = "<group>"; };
+		AC732F1582D17C825D0506A3 /* ForceQuitAlertFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForceQuitAlertFactory.swift; sourceTree = "<group>"; };
 		B07623BCA1CFD3B2763F4A89 /* ResourceStatusPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceStatusPalette.swift; sourceTree = "<group>"; };
 		B1A64E223B48763CEE3B8AC6 /* VisualQAPolicyIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualQAPolicyIntegrationTests.swift; sourceTree = "<group>"; };
 		E46B7D1D2987C1609149FA35 /* AppSelectionModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSelectionModel.swift; sourceTree = "<group>"; };
@@ -82,6 +84,7 @@
 			isa = PBXGroup;
 			children = (
 				7901C56ECD68F283CECF161A /* AppRowView.swift */,
+				AC732F1582D17C825D0506A3 /* ForceQuitAlertFactory.swift */,
 				66167D9837C43070AB993092 /* PopoverViewController.swift */,
 				7014519BCC8F9EA06BDB4D9A /* SettingsWindowController.swift */,
 				1DF05761AD621B9EA347359A /* StatusBarController.swift */,
@@ -309,6 +312,7 @@
 				327E5EEA2472F8A1EA6393DC /* AppRowView.swift in Sources */,
 				56591E4FC613F077CED5EF85 /* AppSelectionModel.swift in Sources */,
 				C837636301F54FFC664E0DB3 /* AppSettings.swift in Sources */,
+				2B5B6781092E525838954140 /* ForceQuitAlertFactory.swift in Sources */,
 				AA2558847F0520FA466120AA /* NotificationManager.swift in Sources */,
 				1D00E7463E33261680E38AF5 /* PopoverViewController.swift in Sources */,
 				C22DEA384671CE0DB9A6FD0C /* ProcessAggregator.swift in Sources */,

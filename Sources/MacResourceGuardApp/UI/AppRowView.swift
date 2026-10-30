@@ -1,4 +1,5 @@
 import AppKit
+import QuartzCore
 #if canImport(MacResourceGuardCore)
 import MacResourceGuardCore
 #endif
@@ -15,6 +16,7 @@ public final class AppRowView: NSView {
 
     public private(set) var currentApp: AggregatedAppProcess?
     private var isAwaitingForceQuit: Bool = false
+    private var isRowSelected: Bool = false
 
     public var onToggleSelection: ((AggregatedAppProcess, Bool) -> Void)?
     public var onRequestQuit: ((AggregatedAppProcess, Bool) -> Void)?
@@ -34,18 +36,28 @@ public final class AppRowView: NSView {
 
     public override func updateLayer() {
         let isDark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-        let fill = isDark
-            ? NSColor(calibratedRed: 0.20, green: 0.20, blue: 0.23, alpha: 0.90).cgColor
-            : NSColor(calibratedRed: 1.0, green: 1.0, blue: 1.0, alpha: 0.92).cgColor
-        let stroke = isDark
-            ? NSColor(calibratedWhite: 1.0, alpha: 0.12).cgColor
-            : NSColor(calibratedWhite: 0.0, alpha: 0.08).cgColor
+        let fill: CGColor
+        let stroke: CGColor
+        if isRowSelected {
+            fill = NSColor.controlAccentColor.withAlphaComponent(isDark ? 0.18 : 0.10).cgColor
+            stroke = NSColor.controlAccentColor.withAlphaComponent(isDark ? 0.78 : 0.68).cgColor
+        } else {
+            fill = isDark
+                ? NSColor(calibratedRed: 0.20, green: 0.20, blue: 0.23, alpha: 0.90).cgColor
+                : NSColor(calibratedRed: 1.0, green: 1.0, blue: 1.0, alpha: 0.92).cgColor
+            stroke = isDark
+                ? NSColor(calibratedWhite: 1.0, alpha: 0.12).cgColor
+                : NSColor(calibratedWhite: 0.0, alpha: 0.08).cgColor
+        }
 
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
         layer?.backgroundColor = fill
         layer?.borderColor = stroke
         layer?.borderWidth = 1.0
         layer?.cornerRadius = 8
         layer?.masksToBounds = true
+        CATransaction.commit()
     }
 
     private func setupViews() {
@@ -141,10 +153,16 @@ public final class AppRowView: NSView {
         with app: AggregatedAppProcess,
         sortByMemory: Bool,
         isSelected: Bool,
-        awaitingForceQuit: Bool
+        awaitingForceQuit: Bool,
+        allowsQuit: Bool = true
     ) {
         self.currentApp = app
         self.isAwaitingForceQuit = awaitingForceQuit
+        self.isRowSelected = app.canSafelyClose && isSelected
+        setAccessibilityElement(true)
+        setAccessibilityRole(.group)
+        setAccessibilityLabel(app.displayName)
+        setAccessibilityValue(isRowSelected ? "Selected" : "Not selected")
         needsDisplay = true
 
         nameLabel.stringValue = app.displayName
@@ -215,11 +233,11 @@ public final class AppRowView: NSView {
             quitButton.bezelColor = nil
         } else if awaitingForceQuit {
             quitButton.title = "Force…"
-            quitButton.isEnabled = true
+            quitButton.isEnabled = allowsQuit
             quitButton.bezelColor = .systemRed
         } else {
             quitButton.title = "Quit"
-            quitButton.isEnabled = true
+            quitButton.isEnabled = allowsQuit
             quitButton.bezelColor = nil
         }
     }

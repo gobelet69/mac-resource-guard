@@ -47,8 +47,9 @@ targets:
     platform: macOS
     deploymentTarget: "14.0"
     sources:
-      - path: Sources/MacResourceGuardCore
       - path: Tests/MacResourceGuardTests
+    dependencies:
+      - target: MacResourceGuard
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.macresourceguard.tests

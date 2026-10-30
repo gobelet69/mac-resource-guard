@@ -10,6 +10,7 @@ public final class StatusBarController: NSObject, NSPopoverDelegate {
     private let popoverViewController: PopoverViewController
     private let coordinator: AdaptiveMonitorCoordinator
     private let settings: AppSettingsStore
+    private let safetyPolicy: VisualQASafetyPolicy
 
     private var lastDisplayedSeverity: ResourceSeverity?
     private var lastDisplayedTitle: String?
@@ -26,18 +27,24 @@ public final class StatusBarController: NSObject, NSPopoverDelegate {
 
     public init(
         coordinator: AdaptiveMonitorCoordinator,
-        settings: AppSettingsStore = .shared
+        settings: AppSettingsStore = .shared,
+        safetyPolicy: VisualQASafetyPolicy = .production
     ) {
         self.coordinator = coordinator
         self.settings = settings
+        self.safetyPolicy = safetyPolicy
         self.statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         self.popover = NSPopover()
-        self.popoverViewController = PopoverViewController(coordinator: coordinator, settings: settings)
+        self.popoverViewController = PopoverViewController(
+            coordinator: coordinator,
+            settings: settings,
+            safetyPolicy: safetyPolicy
+        )
         super.init()
 
         popover.contentViewController = popoverViewController
         popover.behavior = .transient
-        popover.animates = true
+        popover.animates = (safetyPolicy == .production)
         popover.delegate = self
 
         configureStatusButton()
@@ -74,6 +81,15 @@ public final class StatusBarController: NSObject, NSPopoverDelegate {
         if popover.isShown {
             popoverViewController.applySnapshot(snapshot)
         }
+    }
+
+    public func applyVisualQAScenario(_ scenario: VisualQAScenario) {
+        updateStatusBarDisplay(
+            cpuPercent: scenario.snapshot.cpuTotalPercent,
+            severity: scenario.snapshot.severity,
+            force: true
+        )
+        popoverViewController.applyVisualQAScenario(scenario)
     }
 
     private func updateStatusBarDisplay(cpuPercent: Double, severity: ResourceSeverity, force: Bool) {
@@ -140,10 +156,14 @@ public final class StatusBarController: NSObject, NSPopoverDelegate {
             if let appAppearance = NSApp.appearance {
                 popover.appearance = appAppearance
             }
-            coordinator.setPopoverVisible(true)
+            if safetyPolicy == .production {
+                coordinator.setPopoverVisible(true)
+            }
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             popover.contentViewController?.view.window?.makeKey()
-            startOutsideClickMonitor()
+            if safetyPolicy == .production {
+                startOutsideClickMonitor()
+            }
         }
     }
 
@@ -151,12 +171,18 @@ public final class StatusBarController: NSObject, NSPopoverDelegate {
         if popover.isShown {
             popover.performClose(nil)
         }
-        coordinator.setPopoverVisible(false)
+        if safetyPolicy == .production {
+            coordinator.setPopoverVisible(false)
+        }
         stopOutsideClickMonitor()
     }
 
     public var popoverWindow: NSWindow? {
         popover.contentViewController?.view.window
+    }
+
+    public var statusButtonForVisualQAIfAvailable: NSStatusBarButton? {
+        statusItem.button
     }
 
     public func setShowBackgroundProcesses(_ showBackground: Bool) {
@@ -166,7 +192,9 @@ public final class StatusBarController: NSObject, NSPopoverDelegate {
     // MARK: - NSPopoverDelegate
 
     public func popoverDidClose(_ notification: Notification) {
-        coordinator.setPopoverVisible(false)
+        if safetyPolicy == .production {
+            coordinator.setPopoverVisible(false)
+        }
         stopOutsideClickMonitor()
     }
 

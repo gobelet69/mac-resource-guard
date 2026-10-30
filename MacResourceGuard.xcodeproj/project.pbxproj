@@ -7,32 +7,40 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		05687BED265E00014FE1E4D5 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5EDB89ED8696BA5193A32A1 /* AppSettings.swift */; };
-		10C871833BCA4FE94C4C3D9A /* AdaptiveMonitorCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90C8367053AE5CE6770E6B0 /* AdaptiveMonitorCoordinator.swift */; };
 		1D00E7463E33261680E38AF5 /* PopoverViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66167D9837C43070AB993092 /* PopoverViewController.swift */; };
-		2171FFC38406A8C2C8DE4A0B /* AppSelectionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E46B7D1D2987C1609149FA35 /* AppSelectionModel.swift */; };
 		2945BFE2BF8F4B67134EE135 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DF05761AD621B9EA347359A /* StatusBarController.swift */; };
+		2B5B6781092E525838954140 /* ForceQuitAlertFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC732F1582D17C825D0506A3 /* ForceQuitAlertFactory.swift */; };
 		327E5EEA2472F8A1EA6393DC /* AppRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7901C56ECD68F283CECF161A /* AppRowView.swift */; };
 		375146F2ACD9EA9960B7AC71 /* SystemMetricsSampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 137375EC4B0D3C99897A2C46 /* SystemMetricsSampler.swift */; };
-		4B2DC07AECCF2809611C2D52 /* AlertStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30DAB6CBB3D9BDDF29BBD8A5 /* AlertStateMachine.swift */; };
 		56591E4FC613F077CED5EF85 /* AppSelectionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E46B7D1D2987C1609149FA35 /* AppSelectionModel.swift */; };
 		58487DBD86F3BE7D6D1F32AC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4261177D9F5B9D412A2FCA9B /* Assets.xcassets */; };
 		5DCFC8843D67FFD850AF8436 /* AlertStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30DAB6CBB3D9BDDF29BBD8A5 /* AlertStateMachine.swift */; };
-		658332FB1218CF6EE6FBE478 /* SafeAppTerminator.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED964E7EF7A41F7AC7CF643B /* SafeAppTerminator.swift */; };
-		89D4A4D94D80165DA15D85FB /* SystemMetricsSampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 137375EC4B0D3C99897A2C46 /* SystemMetricsSampler.swift */; };
+		6DF60DF361C927E19D673CEE /* VisualQAPolicyIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A64E223B48763CEE3B8AC6 /* VisualQAPolicyIntegrationTests.swift */; };
+		73FDECC4FDE3186E4E5BD116 /* VisualQAScenario.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD039FF2EAE943F1F33B0223 /* VisualQAScenario.swift */; };
+		80B225483E63F24918CDC2DA /* ResourceStatusPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = B07623BCA1CFD3B2763F4A89 /* ResourceStatusPalette.swift */; };
 		9B93C9FA1954706477F30628 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15342DB879183057C799E06A /* main.swift */; };
 		AA2558847F0520FA466120AA /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DC9A30354023AB7A249DF11 /* NotificationManager.swift */; };
-		B2D95ADE147DFDC07D30CF0A /* ProcessAggregator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6491360F617FE07A7EB374E9 /* ProcessAggregator.swift */; };
 		C22DEA384671CE0DB9A6FD0C /* ProcessAggregator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6491360F617FE07A7EB374E9 /* ProcessAggregator.swift */; };
+		C259F9E82F4A27A3E138D034 /* ResourceStatusPaletteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DB4B41B410D373FD1826409 /* ResourceStatusPaletteTests.swift */; };
+		C2B9F1B4EA1810BC17988773 /* VisualQAScenarioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B8B02F8F25F35EBF60C8A6 /* VisualQAScenarioTests.swift */; };
 		C394D4E8CBAE3F7B485230F8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16CAEA1B147382F8A1F0F611 /* AppDelegate.swift */; };
 		C54942B2AF06A348949DAEFA /* ResourceMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F9CDBFB94C053C0BFACBD3 /* ResourceMetrics.swift */; };
 		C837636301F54FFC664E0DB3 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5EDB89ED8696BA5193A32A1 /* AppSettings.swift */; };
 		CA5B7BDDB11B5A6BC2C5C08E /* SafeAppTerminator.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED964E7EF7A41F7AC7CF643B /* SafeAppTerminator.swift */; };
 		DE01DCC654B08EB8FE91AE65 /* AdaptiveMonitorCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90C8367053AE5CE6770E6B0 /* AdaptiveMonitorCoordinator.swift */; };
 		E166C64453D5D488201A0C3F /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7014519BCC8F9EA06BDB4D9A /* SettingsWindowController.swift */; };
-		EED01FEE8322725020BA55E1 /* ResourceMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F9CDBFB94C053C0BFACBD3 /* ResourceMetrics.swift */; };
 		EFCFE68C66A2498EA82D516B /* MacResourceGuardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0FFA575337AFE9CF89A43F4 /* MacResourceGuardTests.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E394E9830DC03C47B50B3F51 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 334E92E02039FB5244C8DF1D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2CC66A08D8EDCF82EDEB91E;
+			remoteInfo = MacResourceGuard;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		0282A40A520BA802ECA446D7 /* MacResourceGuardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MacResourceGuardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -42,18 +50,24 @@
 		1DF05761AD621B9EA347359A /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		30DAB6CBB3D9BDDF29BBD8A5 /* AlertStateMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertStateMachine.swift; sourceTree = "<group>"; };
 		30F9CDBFB94C053C0BFACBD3 /* ResourceMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceMetrics.swift; sourceTree = "<group>"; };
+		3DB4B41B410D373FD1826409 /* ResourceStatusPaletteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceStatusPaletteTests.swift; sourceTree = "<group>"; };
 		4261177D9F5B9D412A2FCA9B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		6491360F617FE07A7EB374E9 /* ProcessAggregator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessAggregator.swift; sourceTree = "<group>"; };
 		66167D9837C43070AB993092 /* PopoverViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverViewController.swift; sourceTree = "<group>"; };
 		7014519BCC8F9EA06BDB4D9A /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
 		7901C56ECD68F283CECF161A /* AppRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRowView.swift; sourceTree = "<group>"; };
+		99B8B02F8F25F35EBF60C8A6 /* VisualQAScenarioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualQAScenarioTests.swift; sourceTree = "<group>"; };
 		9DC9A30354023AB7A249DF11 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		A0FFA575337AFE9CF89A43F4 /* MacResourceGuardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacResourceGuardTests.swift; sourceTree = "<group>"; };
+		AC732F1582D17C825D0506A3 /* ForceQuitAlertFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForceQuitAlertFactory.swift; sourceTree = "<group>"; };
+		B07623BCA1CFD3B2763F4A89 /* ResourceStatusPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceStatusPalette.swift; sourceTree = "<group>"; };
+		B1A64E223B48763CEE3B8AC6 /* VisualQAPolicyIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualQAPolicyIntegrationTests.swift; sourceTree = "<group>"; };
 		E46B7D1D2987C1609149FA35 /* AppSelectionModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSelectionModel.swift; sourceTree = "<group>"; };
 		ED964E7EF7A41F7AC7CF643B /* SafeAppTerminator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeAppTerminator.swift; sourceTree = "<group>"; };
 		F00410A3868E76FF697BF820 /* MacResourceGuard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacResourceGuard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F5EDB89ED8696BA5193A32A1 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		F90C8367053AE5CE6770E6B0 /* AdaptiveMonitorCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptiveMonitorCoordinator.swift; sourceTree = "<group>"; };
+		FD039FF2EAE943F1F33B0223 /* VisualQAScenario.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualQAScenario.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -70,11 +84,20 @@
 			isa = PBXGroup;
 			children = (
 				7901C56ECD68F283CECF161A /* AppRowView.swift */,
+				AC732F1582D17C825D0506A3 /* ForceQuitAlertFactory.swift */,
 				66167D9837C43070AB993092 /* PopoverViewController.swift */,
 				7014519BCC8F9EA06BDB4D9A /* SettingsWindowController.swift */,
 				1DF05761AD621B9EA347359A /* StatusBarController.swift */,
 			);
 			path = UI;
+			sourceTree = "<group>";
+		};
+		24A0BDDBC6B444D7E0AD3922 /* QA */ = {
+			isa = PBXGroup;
+			children = (
+				FD039FF2EAE943F1F33B0223 /* VisualQAScenario.swift */,
+			);
+			path = QA;
 			sourceTree = "<group>";
 		};
 		274905BB04AA7951E07DB94F /* Monitoring */ = {
@@ -113,6 +136,14 @@
 			path = Termination;
 			sourceTree = "<group>";
 		};
+		93520ECD6439D4C3F8738E24 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				B07623BCA1CFD3B2763F4A89 /* ResourceStatusPalette.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
 		9AB94C88043671FC678AF2F7 /* Alerts */ = {
 			isa = PBXGroup;
 			children = (
@@ -143,6 +174,9 @@
 			isa = PBXGroup;
 			children = (
 				A0FFA575337AFE9CF89A43F4 /* MacResourceGuardTests.swift */,
+				3DB4B41B410D373FD1826409 /* ResourceStatusPaletteTests.swift */,
+				B1A64E223B48763CEE3B8AC6 /* VisualQAPolicyIntegrationTests.swift */,
+				99B8B02F8F25F35EBF60C8A6 /* VisualQAScenarioTests.swift */,
 			);
 			name = MacResourceGuardTests;
 			path = Tests/MacResourceGuardTests;
@@ -154,7 +188,9 @@
 				9AB94C88043671FC678AF2F7 /* Alerts */,
 				170D7FD94BCB21EA9B59BED1 /* Models */,
 				274905BB04AA7951E07DB94F /* Monitoring */,
+				24A0BDDBC6B444D7E0AD3922 /* QA */,
 				601E30218D5CF290DE6033AB /* Termination */,
+				93520ECD6439D4C3F8738E24 /* UI */,
 			);
 			name = MacResourceGuardCore;
 			path = Sources/MacResourceGuardCore;
@@ -185,6 +221,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				F7AC44402A930A559605B2CA /* PBXTargetDependency */,
 			);
 			name = MacResourceGuardTests;
 			packageProductDependencies = (
@@ -258,15 +295,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				10C871833BCA4FE94C4C3D9A /* AdaptiveMonitorCoordinator.swift in Sources */,
-				4B2DC07AECCF2809611C2D52 /* AlertStateMachine.swift in Sources */,
-				2171FFC38406A8C2C8DE4A0B /* AppSelectionModel.swift in Sources */,
-				05687BED265E00014FE1E4D5 /* AppSettings.swift in Sources */,
 				EFCFE68C66A2498EA82D516B /* MacResourceGuardTests.swift in Sources */,
-				B2D95ADE147DFDC07D30CF0A /* ProcessAggregator.swift in Sources */,
-				EED01FEE8322725020BA55E1 /* ResourceMetrics.swift in Sources */,
-				658332FB1218CF6EE6FBE478 /* SafeAppTerminator.swift in Sources */,
-				89D4A4D94D80165DA15D85FB /* SystemMetricsSampler.swift in Sources */,
+				C259F9E82F4A27A3E138D034 /* ResourceStatusPaletteTests.swift in Sources */,
+				6DF60DF361C927E19D673CEE /* VisualQAPolicyIntegrationTests.swift in Sources */,
+				C2B9F1B4EA1810BC17988773 /* VisualQAScenarioTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -280,19 +312,30 @@
 				327E5EEA2472F8A1EA6393DC /* AppRowView.swift in Sources */,
 				56591E4FC613F077CED5EF85 /* AppSelectionModel.swift in Sources */,
 				C837636301F54FFC664E0DB3 /* AppSettings.swift in Sources */,
+				2B5B6781092E525838954140 /* ForceQuitAlertFactory.swift in Sources */,
 				AA2558847F0520FA466120AA /* NotificationManager.swift in Sources */,
 				1D00E7463E33261680E38AF5 /* PopoverViewController.swift in Sources */,
 				C22DEA384671CE0DB9A6FD0C /* ProcessAggregator.swift in Sources */,
 				C54942B2AF06A348949DAEFA /* ResourceMetrics.swift in Sources */,
+				80B225483E63F24918CDC2DA /* ResourceStatusPalette.swift in Sources */,
 				CA5B7BDDB11B5A6BC2C5C08E /* SafeAppTerminator.swift in Sources */,
 				E166C64453D5D488201A0C3F /* SettingsWindowController.swift in Sources */,
 				2945BFE2BF8F4B67134EE135 /* StatusBarController.swift in Sources */,
 				375146F2ACD9EA9960B7AC71 /* SystemMetricsSampler.swift in Sources */,
+				73FDECC4FDE3186E4E5BD116 /* VisualQAScenario.swift in Sources */,
 				9B93C9FA1954706477F30628 /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F7AC44402A930A559605B2CA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2CC66A08D8EDCF82EDEB91E /* MacResourceGuard */;
+			targetProxy = E394E9830DC03C47B50B3F51 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		2549AD779D7954B552436C08 /* Release */ = {
@@ -452,6 +495,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.macresourceguard.tests;
 				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MacResourceGuard.app/Contents/MacOS/MacResourceGuard";
 			};
 			name = Release;
 		};
@@ -488,6 +532,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.macresourceguard.tests;
 				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MacResourceGuard.app/Contents/MacOS/MacResourceGuard";
 			};
 			name = Debug;
 		};

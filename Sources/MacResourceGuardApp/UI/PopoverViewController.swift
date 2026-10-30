@@ -877,7 +877,12 @@ public final class PopoverViewController: NSViewController {
     }
 
     private func updateAlertsToggleButton() {
-        let alertsActive = settings.notificationsEnabled && !settings.doNotDisturbEnabled && !settings.isCurrentlyPaused()
+        let alertsActive: Bool
+        if let visualQANotificationPresentation {
+            alertsActive = visualQANotificationPresentation == .enabled
+        } else {
+            alertsActive = settings.notificationsEnabled && !settings.doNotDisturbEnabled && !settings.isCurrentlyPaused()
+        }
         if alertsActive {
             alertsToggleButton.title = "Disable Alerts"
             alertsToggleButton.image = NSImage(systemSymbolName: "bell.badge.fill", accessibilityDescription: "Alerts Active")

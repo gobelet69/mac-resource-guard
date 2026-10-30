@@ -54,21 +54,49 @@ final class VisualQAPolicyIntegrationTests: XCTestCase {
         XCTAssertEqual(alert.buttons.map(\.title), ["Force Quit", "Cancel"])
     }
 
-    func testStatusItemExposesTheRealButtonForVisualQAExport() {
+    func testStatusItemExposesTheRealButtonSafelyForVisualQAExport() throws {
         let controller = StatusBarController(
             coordinator: AdaptiveMonitorCoordinator(),
             safetyPolicy: .visualQAMode
         )
         controller.applyVisualQAScenario(.highCPU)
 
-        let button = controller.statusButtonForVisualQA
+        let button = try XCTUnwrap(controller.statusButtonForVisualQAIfAvailable)
         XCTAssertNotNil(button.image)
         XCTAssertEqual(button.image?.accessibilityDescription, "Elevated Resource Usage")
+    }
+
+    func testNotificationScenarioControlsFooterStateWithoutUsingUserSettings() throws {
+        let suiteName = "VisualQAPolicyIntegrationTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let settings = AppSettingsStore(defaults: defaults)
+        let controller = PopoverViewController(
+            coordinator: AdaptiveMonitorCoordinator(settings: settings),
+            settings: settings,
+            safetyPolicy: .visualQAMode
+        )
+
+        controller.applyVisualQAScenario(.notificationsEnabled)
+        let enabledButton = try XCTUnwrap(controller.view.alertsButton)
+        XCTAssertEqual(enabledButton.title, "Disable Alerts")
+        XCTAssertEqual(enabledButton.image?.accessibilityDescription, "Alerts Active")
+
+        controller.applyVisualQAScenario(.notificationsPaused)
+        let pausedButton = try XCTUnwrap(controller.view.alertsButton)
+        XCTAssertEqual(pausedButton.title, "Enable Alerts")
+        XCTAssertEqual(pausedButton.image?.accessibilityDescription, "Alerts Disabled")
     }
 }
 
 private extension NSView {
     var allDescendants: [NSView] {
         subviews + subviews.flatMap(\.allDescendants)
+    }
+
+    var alertsButton: NSButton? {
+        allDescendants
+            .compactMap { $0 as? NSButton }
+            .first { $0.title.hasSuffix("Alerts") }
     }
 }

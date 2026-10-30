@@ -166,9 +166,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                 guard let scenario else { continue }
                 let outputPath = String(arg.dropFirst("--export-status-item-png=".count))
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-                    guard let self else { return }
+                    guard let self,
+                          let statusButton = self.statusBarController.statusButtonForVisualQAIfAvailable else { return }
                     self.statusBarController.applyVisualQAScenario(scenario)
-                    Self.saveViewPNG(view: self.statusBarController.statusButtonForVisualQA, to: outputPath)
+                    Self.saveViewPNG(view: statusButton, to: outputPath)
                     if args.contains("--quit-after-export") {
                         NSApp.terminate(nil)
                     }

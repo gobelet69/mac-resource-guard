@@ -87,6 +87,10 @@ Before remediation, screenshots exposed local process names and could not reach 
 
 The application activates only for explicit visual-QA launches before export, allowing AppKit to draw active segmented controls without changing normal background operation.
 
+### Notification footer consistency
+
+The deterministic notification scenario now controls both the status subtitle and the footer action. The enabled fixture displays `Disable Alerts` with the active-bell symbol, while disabled, paused, and Do Not Disturb fixtures display `Enable Alerts`; none of these states reads or mutates the user's notification preferences.
+
 ## Lightweightness evidence
 
 The styling correction adds only static color resolution and border/fill changes; it adds no timers, blur layers, observers, or animation loops.
@@ -102,8 +106,8 @@ A final Release sanity run after all QA hooks reported a 37 MB footprint and fiv
 
 ## Verification and limitations
 
-- SwiftPM test suite: 26 tests, 0 failures.
-- Xcode macOS test action: 26 tests, 0 failures; `TEST SUCCEEDED`.
+- SwiftPM test suite: 27 tests, 0 failures.
+- Xcode macOS test action: 27 tests, 0 failures; `TEST SUCCEEDED`.
 - Xcode Release build with derived data under `/tmp`: `BUILD SUCCEEDED`.
 - Release exports: 16 committed sanitized PNGs; popovers are 848 × 952 px, alerts 520 × 564 px, and status-button content 138–140 × 44–46 px.
 - A minimal `screencapture -x -R0,0,10,10` probe still returns `could not create image from rect`. Therefore menu-bar context, native window shadow/material, hover, and modal placement are not claimed as passed.

@@ -181,8 +181,8 @@ public final class StatusBarController: NSObject, NSPopoverDelegate {
         popover.contentViewController?.view.window
     }
 
-    public var statusButtonForVisualQA: NSStatusBarButton {
-        statusItem.button!
+    public var statusButtonForVisualQAIfAvailable: NSStatusBarButton? {
+        statusItem.button
     }
 
     public func setShowBackgroundProcesses(_ showBackground: Bool) {

@@ -2,13 +2,20 @@
 import AppKit
 import CoreGraphics
 
-let baseDir = CommandLine.arguments.count > 1
-    ? CommandLine.arguments[1]
-    : "/Users/theodeville/Documents/Mac Ressource Guard/Sources/MacResourceGuardApp/Resources/Assets.xcassets/AppIcon.appiconset"
+let repoRoot = URL(fileURLWithPath: #filePath)
+    .deletingLastPathComponent()
+    .deletingLastPathComponent()
+
+let defaultAssetDir = repoRoot
+    .appendingPathComponent("Sources/MacResourceGuardApp/Resources/Assets.xcassets/AppIcon.appiconset")
+    .path
+
+let baseDir = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : defaultAssetDir
 
 let fm = FileManager.default
 try fm.createDirectory(atPath: baseDir, withIntermediateDirectories: true)
 
+/// Renders the 111iridescence v2.1 Resource Guard icon using 100% custom vector & pixel-grid geometry (zero SF Symbols).
 func renderIcon(pixelSize: Int) -> Data? {
     let size = NSSize(width: pixelSize, height: pixelSize)
     guard let rep = NSBitmapImageRep(
@@ -31,55 +38,99 @@ func renderIcon(pixelSize: Int) -> Data? {
     let cg = context.cgContext
 
     let s = CGFloat(pixelSize)
-    let inset = s * 0.08
-    let rect = NSRect(x: inset, y: inset, width: s - inset * 2, height: s - inset * 2)
-    let cornerRadius = rect.width * 0.225
+    let scale = s / 1024.0
 
-    // Background squircle with deep navy-teal gradient
-    let squirclePath = NSBezierPath(roundedRect: rect, xRadius: cornerRadius, yRadius: cornerRadius)
+    // 1. Luminous Pearl macOS Squircle (824x824 at 100,100, rx=185)
+    let sqRect = NSRect(x: 100 * scale, y: 100 * scale, width: 824 * scale, height: 824 * scale)
+    let sqRadius = 185 * scale
+    let squirclePath = NSBezierPath(roundedRect: sqRect, xRadius: sqRadius, yRadius: sqRadius)
+
     cg.saveGState()
     squirclePath.addClip()
 
     let colorSpace = CGColorSpaceCreateDeviceRGB()
-    let colors = [
-        CGColor(red: 0.07, green: 0.14, blue: 0.26, alpha: 1.0),
-        CGColor(red: 0.04, green: 0.32, blue: 0.38, alpha: 1.0)
+    let pearlColors = [
+        CGColor(red: 1.000, green: 1.000, blue: 1.000, alpha: 1.0),
+        CGColor(red: 0.925, green: 0.902, blue: 0.961, alpha: 1.0)
     ] as CFArray
-    if let gradient = CGGradient(colorsSpace: colorSpace, colors: colors, locations: [0.0, 1.0]) {
+    if let grad = CGGradient(colorsSpace: colorSpace, colors: pearlColors, locations: [0.0, 1.0]) {
         cg.drawLinearGradient(
-            gradient,
-            start: CGPoint(x: s * 0.5, y: s - inset),
-            end: CGPoint(x: s * 0.5, y: inset),
+            grad,
+            start: CGPoint(x: s * 0.5, y: sqRect.maxY),
+            end: CGPoint(x: s * 0.5, y: sqRect.minY),
             options: []
         )
     }
 
-    // Subtle inner border
-    NSColor(calibratedWhite: 1.0, alpha: 0.18).setStroke()
-    squirclePath.lineWidth = max(1.0, s * 0.015)
-    squirclePath.stroke()
+    // 2. Recessed Obsidian Telemetry Screen (640x640 at 192,192, rx=124)
+    let screenRect = NSRect(x: 192 * scale, y: 192 * scale, width: 640 * scale, height: 640 * scale)
+    let screenPath = NSBezierPath(roundedRect: screenRect, xRadius: 124 * scale, yRadius: 124 * scale)
+    NSColor(srgbRed: 0.086, green: 0.063, blue: 0.114, alpha: 1.0).setFill()
+    screenPath.fill()
 
-    // Draw SF Symbol gauge/shield centered
-    let symbolPointSize = s * 0.46
-    let symbolConfig = NSImage.SymbolConfiguration(pointSize: symbolPointSize, weight: .semibold)
-    if let symbol = NSImage(systemSymbolName: "gauge.with.dots.needle.bottom.50percent", accessibilityDescription: nil)?
-        .withSymbolConfiguration(symbolConfig) {
-        let symSize = symbol.size
-        let symRect = NSRect(
-            x: (s - symSize.width) / 2.0,
-            y: (s - symSize.height) / 2.0,
-            width: symSize.width,
-            height: symSize.height
-        )
-        let tinted = NSImage(size: symSize)
-        tinted.lockFocus()
-        NSColor(calibratedRed: 0.32, green: 0.92, blue: 0.72, alpha: 1.0).set()
-        let localRect = NSRect(origin: .zero, size: symSize)
-        symbol.draw(in: localRect)
-        localRect.fill(using: .sourceAtop)
-        tinted.unlockFocus()
-        tinted.draw(in: symRect)
+    // 3. 5 Stepped Pixel-Grid Telemetry Columns (Emerald Phosphor + Controlled Turquoise + Cyan)
+    let colHeights = [4, 6, 5, 7, 3]
+    for c in 0..<5 {
+        let x = (264.0 + CGFloat(c) * 104.0) * scale
+        let activeRows = colHeights[c]
+        for r in 0..<7 {
+            // In flipped SVG y=696 is bottom; in AppKit y increases upward from bottom
+            let svgY = 696.0 - CGFloat(r) * 48.0
+            let appKitY = (1024.0 - svgY - 36.0) * scale
+            let segRect = NSRect(x: x, y: appKitY, width: 80 * scale, height: 36 * scale)
+            let segPath = NSBezierPath(roundedRect: segRect, xRadius: 7 * scale, yRadius: 7 * scale)
+            if r < activeRows {
+                if r <= 1 {
+                    NSColor(srgbRed: 0.020, green: 0.588, blue: 0.412, alpha: 1.0).setFill()
+                } else if r == activeRows - 1 && c == 3 {
+                    NSColor(srgbRed: 0.047, green: 0.753, blue: 0.910, alpha: 1.0).setFill()
+                } else if r >= 4 {
+                    NSColor(srgbRed: 0.204, green: 0.827, blue: 0.600, alpha: 1.0).setFill()
+                } else if c == 2 {
+                    NSColor(srgbRed: 0.071, green: 0.800, blue: 0.722, alpha: 1.0).setFill()
+                } else {
+                    NSColor(srgbRed: 0.063, green: 0.725, blue: 0.506, alpha: 1.0).setFill()
+                }
+            } else {
+                NSColor(srgbRed: 0.165, green: 0.129, blue: 0.231, alpha: 0.65).setFill()
+            }
+            segPath.fill()
+        }
     }
+
+    // 4. Top '111.' Pixel Indicator + Guard Ceiling Line
+    let ceilingY = (1024.0 - 340.0 - 10.0) * scale
+    NSColor(srgbRed: 0.071, green: 0.800, blue: 0.722, alpha: 0.85).setFill()
+    NSBezierPath(
+        roundedRect: NSRect(x: 252 * scale, y: ceilingY, width: 520 * scale, height: 10 * scale),
+        xRadius: 5 * scale,
+        yRadius: 5 * scale
+    ).fill()
+
+    // 5. Signature 5-Cell Pixel Cross Star (`cross-5`) at top-right of screen
+    let starCx = 712.0 * scale
+    let starCy = (1024.0 - 280.0) * scale
+    let pitch = 26.0 * scale
+    let cell = 22.0 * scale
+    let starCells: [(CGFloat, CGFloat, NSColor)] = [
+        (0, 0, NSColor(srgbRed: 0.878, green: 0.980, blue: 1.000, alpha: 1.0)),
+        (0, 1, NSColor(srgbRed: 0.204, green: 0.827, blue: 0.600, alpha: 1.0)),
+        (-1, 0, NSColor(srgbRed: 0.071, green: 0.800, blue: 0.722, alpha: 1.0)),
+        (1, 0, NSColor(srgbRed: 0.047, green: 0.753, blue: 0.910, alpha: 1.0)),
+        (0, -1, NSColor(srgbRed: 0.063, green: 0.725, blue: 0.506, alpha: 1.0))
+    ]
+    for (dx, dy, col) in starCells {
+        col.setFill()
+        NSBezierPath(
+            roundedRect: NSRect(x: starCx + dx * pitch - cell * 0.5, y: starCy + dy * pitch - cell * 0.5, width: cell, height: cell),
+            xRadius: 4 * scale,
+            yRadius: 4 * scale
+        ).fill()
+    }
+
+    NSColor(srgbRed: 0.086, green: 0.063, blue: 0.114, alpha: 0.14).setStroke()
+    squirclePath.lineWidth = max(1.0, 3.0 * scale)
+    squirclePath.stroke()
 
     cg.restoreGState()
     NSGraphicsContext.restoreGraphicsState()
@@ -141,4 +192,4 @@ try rootContentsJSON.write(
     atomically: true,
     encoding: .utf8
 )
-print("Generated AppIcon asset catalog in \(baseDir)")
+print("Generated 111iridescence Resource Guard AppIcon asset catalog in \(baseDir)")

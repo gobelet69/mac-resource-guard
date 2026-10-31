@@ -35,11 +35,11 @@ public final class AppRowView: NSView {
     public override func updateLayer() {
         let isDark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
         let fill = isDark
-            ? NSColor(calibratedRed: 0.20, green: 0.20, blue: 0.23, alpha: 0.90).cgColor
-            : NSColor(calibratedRed: 1.0, green: 1.0, blue: 1.0, alpha: 0.92).cgColor
+            ? NSColor(srgbRed: 0.129, green: 0.102, blue: 0.180, alpha: 0.92).cgColor
+            : NSColor(srgbRed: 1.0, green: 1.0, blue: 1.0, alpha: 0.95).cgColor
         let stroke = isDark
-            ? NSColor(calibratedWhite: 1.0, alpha: 0.12).cgColor
-            : NSColor(calibratedWhite: 0.0, alpha: 0.08).cgColor
+            ? NSColor(srgbRed: 0.580, green: 0.471, blue: 1.000, alpha: 0.18).cgColor
+            : NSColor(srgbRed: 0.439, green: 0.180, blue: 0.894, alpha: 0.12).cgColor
 
         layer?.backgroundColor = fill
         layer?.borderColor = stroke

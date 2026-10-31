@@ -74,7 +74,28 @@ final class StaticLevelBarView: NSView {
     }
 }
 
-/// Adaptive root view for the popover that provides a clean material surface in both Light and Dark appearances.
+/// 111iridescence v2.1 surface & telemetry tokens for Resource Guard.
+enum ResourceGuardTheme {
+    static var emeraldNominal: NSColor {
+        NSColor(name: nil) { appearance in
+            let isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            return isDark
+                ? NSColor(srgbRed: 0.204, green: 0.827, blue: 0.600, alpha: 1.0) // #34D399
+                : NSColor(srgbRed: 0.020, green: 0.588, blue: 0.412, alpha: 1.0) // #059669
+        }
+    }
+
+    static var deepViolet: NSColor {
+        NSColor(name: nil) { appearance in
+            let isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            return isDark
+                ? NSColor(srgbRed: 0.580, green: 0.471, blue: 1.000, alpha: 1.0) // #9478FF
+                : NSColor(srgbRed: 0.439, green: 0.180, blue: 0.894, alpha: 1.0) // #702EE4
+        }
+    }
+}
+
+/// Adaptive root view for the popover that provides a clean 111iridescence Pearl/Obsidian surface in both Light and Dark appearances.
 final class PopoverSurfaceView: NSView {
     override var isFlipped: Bool { true }
     override var allowsVibrancy: Bool { false }
@@ -82,8 +103,8 @@ final class PopoverSurfaceView: NSView {
     override func draw(_ dirtyRect: NSRect) {
         let isDark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
         let bgColor = isDark
-            ? NSColor(calibratedRed: 0.15, green: 0.15, blue: 0.17, alpha: 0.96)
-            : NSColor(calibratedRed: 0.95, green: 0.95, blue: 0.97, alpha: 0.96)
+            ? NSColor(srgbRed: 0.086, green: 0.067, blue: 0.122, alpha: 0.97) // Deep Obsidian #16111F
+            : NSColor(srgbRed: 0.976, green: 0.969, blue: 0.988, alpha: 0.97) // Luminous Pearl #F9F7FC
         bgColor.setFill()
         dirtyRect.fill()
     }
@@ -109,11 +130,11 @@ final class AdaptiveCardView: NSView {
     override func updateLayer() {
         let isDark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
         let fill = isDark
-            ? NSColor(calibratedRed: 0.20, green: 0.20, blue: 0.23, alpha: 0.90).cgColor
-            : NSColor(calibratedRed: 1.0, green: 1.0, blue: 1.0, alpha: 0.92).cgColor
+            ? NSColor(srgbRed: 0.129, green: 0.102, blue: 0.180, alpha: 0.92).cgColor
+            : NSColor(srgbRed: 1.0, green: 1.0, blue: 1.0, alpha: 0.95).cgColor
         let stroke = isDark
-            ? NSColor(calibratedWhite: 1.0, alpha: 0.12).cgColor
-            : NSColor(calibratedWhite: 0.0, alpha: 0.08).cgColor
+            ? NSColor(srgbRed: 0.580, green: 0.471, blue: 1.000, alpha: 0.18).cgColor
+            : NSColor(srgbRed: 0.439, green: 0.180, blue: 0.894, alpha: 0.12).cgColor
 
         layer?.backgroundColor = fill
         layer?.borderColor = stroke
@@ -523,7 +544,7 @@ public final class PopoverViewController: NSViewController {
         let symbolName: String
         switch snapshot.severity {
         case .normal:
-            statusColor = .systemGreen
+            statusColor = ResourceGuardTheme.emeraldNominal
             symbolName = "checkmark.shield.fill"
         case .elevated:
             statusColor = .systemOrange
@@ -561,7 +582,7 @@ public final class PopoverViewController: NSViewController {
         } else if snapshot.cpuTotalPercent >= settings.cpuWarningThresholdPercent - 15.0 {
             cpuBarView.fillColor = .systemOrange
         } else {
-            cpuBarView.fillColor = .systemGreen
+            cpuBarView.fillColor = ResourceGuardTheme.emeraldNominal
         }
         cpuDetailLabel.stringValue = String(
             format: "User %.0f%% • Sys %.0f%%",
@@ -580,7 +601,7 @@ public final class PopoverViewController: NSViewController {
         memValueLabel.stringValue = mem.pressureLevel.title
         switch mem.pressureLevel {
         case .normal:
-            memBarView.fillColor = .systemGreen
+            memBarView.fillColor = ResourceGuardTheme.emeraldNominal
             let usedPressureRatio = 1.0 - (Double(mem.availableBytes) / Double(max(1, mem.totalPhysicalBytes)))
             memBarView.fraction = max(0.12, min(0.65, usedPressureRatio * 0.7))
         case .elevated:

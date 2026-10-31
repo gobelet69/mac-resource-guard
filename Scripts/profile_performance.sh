@@ -1,8 +1,9 @@
 #!/usr/bin/env zsh
 set -euo pipefail
 
-APP_BIN="${1:-/Users/theodeville/Documents/Mac Ressource Guard/dist/MacResourceGuard.app/Contents/MacOS/MacResourceGuard}"
-REPORT_OUT="${2:-/Users/theodeville/Documents/Mac Ressource Guard/PERFORMANCE_AUDIT.md}"
+REPO_ROOT="${0:A:h:h}"
+APP_BIN="${1:-$REPO_ROOT/dist/MacResourceGuard.app/Contents/MacOS/MacResourceGuard}"
+REPORT_OUT="${2:-$REPO_ROOT/PERFORMANCE_AUDIT.md}"
 
 if [[ ! -x "$APP_BIN" ]]; then
   echo "Error: Executable not found at $APP_BIN"

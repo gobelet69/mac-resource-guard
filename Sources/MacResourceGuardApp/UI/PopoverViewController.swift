@@ -76,6 +76,7 @@ final class StaticLevelBarView: NSView {
 
 /// Adaptive root view for the popover that provides a clean material surface in both Light and Dark appearances.
 final class PopoverSurfaceView: NSView {
+    override var isFlipped: Bool { true }
     override var allowsVibrancy: Bool { false }
 
     override func draw(_ dirtyRect: NSRect) {
@@ -170,6 +171,7 @@ public final class PopoverViewController: NSViewController {
     private var currentDisplayedApps: [AggregatedAppProcess] = []
 
     public var onOpenSettings: (() -> Void)?
+    public var onPreferredContentSizeChanged: ((NSSize) -> Void)?
 
     public init(
         coordinator: AdaptiveMonitorCoordinator,
@@ -187,10 +189,10 @@ public final class PopoverViewController: NSViewController {
     }
 
     public override func loadView() {
-        let rootView = PopoverSurfaceView(frame: NSRect(x: 0, y: 0, width: 424, height: 476))
+        let rootView = PopoverSurfaceView(frame: NSRect(x: 0, y: 0, width: 424, height: 448))
         self.view = rootView
-        self.preferredContentSize = NSSize(width: 424, height: 476)
         buildLayout(in: rootView)
+        updatePreferredContentSize()
     }
 
     public override func viewWillAppear() {
@@ -202,9 +204,23 @@ public final class PopoverViewController: NSViewController {
         if let snapshot = coordinator.latestSnapshot {
             applySnapshot(snapshot)
         }
+        updatePreferredContentSize()
         // Prevent automatic blue focus ring on the first control when popover opens
         DispatchQueue.main.async { [weak self] in
             self?.view.window?.makeFirstResponder(nil)
+        }
+    }
+
+    public func updatePreferredContentSize() {
+        guard isViewLoaded else { return }
+        view.layoutSubtreeIfNeeded()
+        let fitting = view.fittingSize
+        if fitting.height > 0 {
+            let targetSize = NSSize(width: 424, height: ceil(fitting.height))
+            if preferredContentSize != targetSize {
+                preferredContentSize = targetSize
+                onPreferredContentSizeChanged?(targetSize)
+            }
         }
     }
 
@@ -398,14 +414,14 @@ public final class PopoverViewController: NSViewController {
         }
 
         let safeArea = rootView.safeAreaLayoutGuide
-        let safeTop = mainStack.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 14)
+        let safeTop = mainStack.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 18)
         safeTop.priority = .defaultHigh
         NSLayoutConstraint.activate([
             safeTop,
-            mainStack.topAnchor.constraint(greaterThanOrEqualTo: rootView.topAnchor, constant: 26),
+            mainStack.topAnchor.constraint(greaterThanOrEqualTo: rootView.topAnchor, constant: 18),
             mainStack.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 16),
             mainStack.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -16),
-            mainStack.bottomAnchor.constraint(lessThanOrEqualTo: rootView.bottomAnchor, constant: -14),
+            mainStack.bottomAnchor.constraint(equalTo: rootView.bottomAnchor, constant: -14),
             rootView.widthAnchor.constraint(equalToConstant: 424)
         ])
     }
@@ -717,6 +733,7 @@ public final class PopoverViewController: NSViewController {
     private func setActionFeedback(_ message: String) {
         actionFeedbackLabel.stringValue = message
         actionFeedbackLabel.isHidden = message.isEmpty
+        updatePreferredContentSize()
     }
 
     private func handleRowQuitRequested(app: AggregatedAppProcess, isForce: Bool) {

@@ -39,6 +39,11 @@ public final class StatusBarController: NSObject, NSPopoverDelegate {
         popover.behavior = .transient
         popover.animates = true
         popover.delegate = self
+        popover.contentSize = popoverViewController.preferredContentSize
+
+        popoverViewController.onPreferredContentSizeChanged = { [weak self] newSize in
+            self?.popover.contentSize = newSize
+        }
 
         configureStatusButton()
         updateStatusBarDisplay(cpuPercent: 0.0, severity: .normal, force: true)
@@ -141,6 +146,8 @@ public final class StatusBarController: NSObject, NSPopoverDelegate {
                 popover.appearance = appAppearance
             }
             coordinator.setPopoverVisible(true)
+            popoverViewController.updatePreferredContentSize()
+            popover.contentSize = popoverViewController.preferredContentSize
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             popover.contentViewController?.view.window?.makeKey()
             startOutsideClickMonitor()

@@ -1,0 +1,123 @@
+name: macOS Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & Publish Release
+    runs-on: macos-14
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Select Xcode version
+        run: sudo xcode-select -switch /Applications/Xcode_16.0.app || sudo xcode-select -switch /Applications/Xcode.app
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Validate release version alignment
+        run: |
+          set -euo pipefail
+          PLIST_VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' Sources/MacResourceGuardApp/Resources/Info.plist)
+          REF_NAME="${{ github.ref_name }}"
+          if [[ "$REF_NAME" == v* ]]; then
+            TAG_VERSION="${REF_NAME#v}"
+            if [ "$PLIST_VERSION" != "$TAG_VERSION" ]; then
+              echo "Error: Info.plist version ($PLIST_VERSION) does not match tag ($TAG_VERSION)" >&2
+              exit 1
+            fi
+          fi
+          echo "Release version validated: $PLIST_VERSION"
+
+      - name: Run automated test suite
+        run: swift test --scratch-path /tmp/macresourceguard-build
+
+      - name: Configure Apple Developer ID (if configured)
+        env:
+          MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          APPLE_NOTARY_ID: ${{ secrets.APPLE_NOTARY_ID }}
+          APPLE_NOTARY_PASSWORD: ${{ secrets.APPLE_NOTARY_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          if [ -n "${MACOS_CERTIFICATE_P12:-}" ] && [ -n "${MACOS_CERTIFICATE_PASSWORD:-}" ]; then
+            echo "Importing Apple Developer ID certificate..."
+            KEYCHAIN_PATH="$RUNNER_TEMP/resource-guard-signing.keychain-db"
+            KEYCHAIN_PASSWORD=$(openssl rand -hex 24)
+            CERTIFICATE_PATH="$RUNNER_TEMP/developer-id.p12"
+            echo "$MACOS_CERTIFICATE_P12" | base64 --decode > "$CERTIFICATE_PATH"
+            security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+            security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+            security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+            security import "$CERTIFICATE_PATH" -P "$MACOS_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+            security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+            security list-keychains -d user -s "$KEYCHAIN_PATH"
+            if [ -n "${APPLE_NOTARY_ID:-}" ]; then
+              xcrun notarytool store-credentials resource-guard-notary \
+                --apple-id "$APPLE_NOTARY_ID" \
+                --password "$APPLE_NOTARY_PASSWORD" \
+                --team-id "$APPLE_TEAM_ID" \
+                --keychain "$KEYCHAIN_PATH"
+              echo "NOTARY_PROFILE=resource-guard-notary" >> "$GITHUB_ENV"
+              echo "NOTARY_KEYCHAIN=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+            fi
+            echo "SIGNING_IDENTITY=${{ secrets.MACOS_SIGNING_IDENTITY }}" >> "$GITHUB_ENV"
+          else
+            echo "No Developer ID certificate configured. Falling back to ad-hoc signing."
+            echo "SIGNING_IDENTITY=-" >> "$GITHUB_ENV"
+          fi
+
+      - name: Package Release DMG and Checksums
+        run: |
+          ./Scripts/package_dmg.sh
+
+      - name: Notarize and staple DMG (if credentials available)
+        if: env.NOTARY_PROFILE != ''
+        run: |
+          DMG_FILE=$(find dist -name "*.dmg" | head -n 1)
+          echo "Submitting $DMG_FILE for Apple notarization..."
+          xcrun notarytool submit "$DMG_FILE" \
+            --keychain-profile "$NOTARY_PROFILE" \
+            --keychain "$NOTARY_KEYCHAIN" \
+            --wait
+          xcrun stapler staple "$DMG_FILE"
+          (cd dist && shasum -a 256 "$(basename "$DMG_FILE")" > SHA256SUMS.txt)
+
+      - name: Generate Release Notes
+        id: notes
+        run: |
+          cat << 'EOF' > release_notes.md
+          ## Resource Guard ${{ github.ref_name }}
+
+          Ultra-lightweight macOS menu bar monitor built with Swift, AppKit, and Mach/Darwin kernel APIs.
+
+          ### Highlights
+          - Adaptive two-tier monitoring: 10s idle interval with only 2 Mach traps.
+          - Intelligent memory pressure heuristics distinguishing file cache from real exhaustion.
+          - Automatic helper process aggregation (Chrome, Safari, VS Code) without double-counting.
+          - Safe process termination protecting macOS system-critical components.
+          - Native AppKit popover with Liquid Glass appearance.
+
+          ### Cryptographic Verification
+          Verify downloads using the published `SHA256SUMS.txt` manifest.
+          EOF
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Mac Resource Guard ${{ github.ref_name }}"
+          body_path: release_notes.md
+          files: dist/*
+          fail_on_unmatched_files: true

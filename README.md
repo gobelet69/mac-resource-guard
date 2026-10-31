@@ -60,7 +60,8 @@ Resource Guard is engineered directly against Apple's **Mach/Darwin kernel subsy
 - **Operating System**: macOS 14.0 (Sonoma) or newer (macOS 14 and macOS 15+ supported).
 - **Architecture**: Apple Silicon (`arm64`, M1/M2/M3/M4) native.
 - **RAM**: ~15 MB baseline memory.
-- **Permissions**: Standard user permissions (no root privileges, kernel extensions, or accessibility permissions required).
+- **Permissions**: Standard user permissions. No administrator privileges, root access, kernel extensions, or accessibility permissions are required.
+- **Sandboxing**: Runs as a standard macOS user-space application (non-sandboxed) with `<key>com.apple.security.app-sandbox</key><false/>`. Inspecting Darwin Mach kernel host statistics (`host_statistics64`, `host_processor_info`) and system-wide process memory telemetry requires operating outside the container sandbox.
 
 ---
 
@@ -71,7 +72,14 @@ Resource Guard is engineered directly against Apple's **Mach/Darwin kernel subsy
 2. Open the downloaded disk image.
 3. Drag **MacResourceGuard.app** into your `/Applications` directory.
 4. Launch **MacResourceGuard** from Spotlight or `/Applications`. A discreet telemetry indicator will appear in your macOS menu bar.
-5. *Gatekeeper Verification*: On community or ad-hoc signed releases, right-click `MacResourceGuard.app` in Finder, choose **Open**, and confirm.
+5. **macOS Gatekeeper Verification (Non-Notarised Builds)**:
+   Because releases are ad-hoc signed without an Apple Developer ID subscription, macOS Gatekeeper may present a dialog on first launch (*"MacResourceGuard cannot be opened because Apple cannot check it for malicious software"*). To safely open the application:
+   - **Via Finder**: Right-click (or Control-click) **MacResourceGuard.app** in `/Applications`, choose **Open**, and click **Open** in the confirmation alert. Alternatively, navigate to **System Settings → Privacy & Security** and click **Open Anyway**.
+   - **Via Terminal** (optional): Clear the quarantine extended attribute:
+     ```bash
+     xattr -d com.apple.quarantine "/Applications/MacResourceGuard.app"
+     ```
+   Once opened, macOS permanently remembers your choice, and subsequent launches start instantly without warnings.
 
 ---
 
@@ -159,7 +167,7 @@ All 13 test suites verify kernel metric samplers, multi-process aggregators, mem
 ## 11. Known Limitations
 
 - **Apple Silicon Optimized**: Specifically engineered and tuned for Apple Silicon architecture (`arm64`).
-- **Standard User Sandbox**: Operates without root or kernel extensions; root-only daemon internal heaps cannot be inspected beyond standard Mach statistics.
+- **Standard User Execution (Non-Sandboxed)**: Operates without root or kernel extensions; root-only daemon internal heaps cannot be inspected beyond standard Mach statistics. App Sandbox is disabled (`com.apple.security.app-sandbox = false`) to permit Mach host telemetry queries.
 
 ---
 

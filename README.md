@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/gobelet69/mac-resource-guard/releases/latest"><img src="https://img.shields.io/badge/release-v1.0.0-emerald?color=10B981" alt="Release v1.0.0"></a>
+  <a href="https://github.com/gobelet69/mac-resource-guard/releases/latest"><img src="https://img.shields.io/badge/release-v1.1.0-emerald?color=10B981" alt="Release v1.1.0"></a>
   <img src="https://img.shields.io/badge/platform-macOS%2014.0%2B-blue?logo=apple" alt="macOS 14+">
   <img src="https://img.shields.io/badge/architecture-Apple%20Silicon%20(arm64)-purple" alt="Apple Silicon">
   <img src="https://img.shields.io/badge/language-Swift%206%20%2F%205.10-orange?logo=swift" alt="Swift">
@@ -68,7 +68,7 @@ Resource Guard is engineered directly against Apple's **Mach/Darwin kernel subsy
 ## 5. Installation Instructions
 
 1. Download the latest release `.dmg` from the **[GitHub Releases](https://github.com/gobelet69/mac-resource-guard/releases/latest)** page:
-   - `MacResourceGuard-1.0.0.dmg`
+   - `MacResourceGuard-1.1.0.dmg`
 2. Open the downloaded disk image.
 3. Drag **MacResourceGuard.app** into your `/Applications` directory.
 4. Launch **MacResourceGuard** from Spotlight or `/Applications`. A discreet telemetry indicator will appear in your macOS menu bar.
@@ -138,7 +138,7 @@ If an application is consuming excessive CPU or memory:
    ```bash
    ./Scripts/package_dmg.sh
    ```
-   The generated `.dmg` package will be created in `dist/MacResourceGuard-1.0.0.dmg`.
+   The generated `.dmg` package will be created in `dist/MacResourceGuard-1.1.0.dmg`.
 
 > [!TIP]
 > If building inside an iCloud-synced folder, run test suites with `--scratch-path /tmp/macresourceguard-build` to ensure macOS FileProvider attributes do not interfere with codesigning.

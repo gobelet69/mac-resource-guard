@@ -192,6 +192,7 @@ public final class PopoverViewController: NSViewController {
     private var currentDisplayedApps: [AggregatedAppProcess] = []
 
     public var onOpenSettings: (() -> Void)?
+    public var onRequestClose: (() -> Void)?
     public var onPreferredContentSizeChanged: ((NSSize) -> Void)?
 
     public init(
@@ -921,7 +922,11 @@ public final class PopoverViewController: NSViewController {
             }
         }
         if event.keyCode == 53 { // Escape
-            view.window?.performClose(nil)
+            if let onRequestClose {
+                onRequestClose()
+            } else {
+                view.window?.performClose(nil)
+            }
             return true
         }
         return super.performKeyEquivalent(with: event)

@@ -45,6 +45,10 @@ public final class StatusBarController: NSObject, NSPopoverDelegate {
             self?.popover.contentSize = newSize
         }
 
+        popoverViewController.onRequestClose = { [weak self] in
+            self?.closePopover()
+        }
+
         configureStatusButton()
         updateStatusBarDisplay(cpuPercent: 0.0, severity: .normal, force: true)
 

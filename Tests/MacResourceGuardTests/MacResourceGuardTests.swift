@@ -509,6 +509,9 @@ final class MacResourceGuardTests: XCTestCase {
             (311, 501, "com.apple.dock", "Dock", "/System/Library/CoreServices/Dock.app/Contents/MacOS/Dock"),
             (180, 88, "com.apple.WindowServer", "WindowServer", "/System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer"),
             (190, 501, "com.apple.loginwindow", "loginwindow", "/System/Library/CoreServices/loginwindow.app/Contents/MacOS/loginwindow"),
+            (210, 501, nil, "cfprefsd", "/usr/sbin/cfprefsd"),
+            (211, 501, nil, "distnoted", "/usr/sbin/distnoted"),
+            (212, 501, nil, "tccd", "/System/Library/PrivateFrameworks/TCC.framework/Support/tccd"),
             (ProcessInfo.processInfo.processIdentifier, 501, "com.macresourceguard.app", "MacResourceGuard", nil)
         ]
 

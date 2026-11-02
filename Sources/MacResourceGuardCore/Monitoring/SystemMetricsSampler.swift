@@ -180,12 +180,15 @@ public final class SystemMetricsSampler {
 
     // MARK: - Low-Level Mach & Sysctl Readers
 
+    /// Cached Mach host port to prevent leaking send rights via repeated mach_host_self() invocations.
+    private static let cachedHostPort: host_t = mach_host_self()
+
     public static func readHostCPUTicks() -> CPUTicksSample {
         var cpuLoadInfo = host_cpu_load_info_data_t()
         var count = mach_msg_type_number_t(MemoryLayout<host_cpu_load_info_data_t>.stride / MemoryLayout<integer_t>.stride)
         let kerr = withUnsafeMutablePointer(to: &cpuLoadInfo) { ptr in
             ptr.withMemoryRebound(to: integer_t.self, capacity: Int(count)) { intPtr in
-                host_statistics(mach_host_self(), HOST_CPU_LOAD_INFO, intPtr, &count)
+                host_statistics(cachedHostPort, HOST_CPU_LOAD_INFO, intPtr, &count)
             }
         }
         guard kerr == KERN_SUCCESS else {
@@ -204,7 +207,7 @@ public final class SystemMetricsSampler {
         var count = mach_msg_type_number_t(MemoryLayout<vm_statistics64_data_t>.stride / MemoryLayout<integer_t>.stride)
         let kerr = withUnsafeMutablePointer(to: &vmStat) { ptr in
             ptr.withMemoryRebound(to: integer_t.self, capacity: Int(count)) { intPtr in
-                host_statistics64(mach_host_self(), HOST_VM_INFO64, intPtr, &count)
+                host_statistics64(cachedHostPort, HOST_VM_INFO64, intPtr, &count)
             }
         }
         guard kerr == KERN_SUCCESS else { return nil }

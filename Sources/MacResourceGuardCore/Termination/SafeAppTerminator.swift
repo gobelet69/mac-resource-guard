@@ -55,6 +55,17 @@ public final class SafeAppTerminator {
         "WindowManager",
         "UserEventAgent",
         "coreservicesd",
+        "cfprefsd",
+        "distnoted",
+        "secinitd",
+        "tccd",
+        "lsd",
+        "pbs",
+        "cloudd",
+        "fileproviderd",
+        "talagent",
+        "trustd",
+        "syspolicyd",
         "MacResourceGuard",
         "agy"
     ]
@@ -107,7 +118,10 @@ public final class SafeAppTerminator {
                 // Finder, Dock, SystemUIServer, ControlCenter, loginwindow live in /System/Library/CoreServices
                 return (true, "macOS CoreServices component")
             }
-            if path.hasPrefix("/sbin/") || path.hasPrefix("/usr/libexec/") || path.hasPrefix("/System/Library/PrivateFrameworks/") {
+            if path.hasPrefix("/sbin/") || path.hasPrefix("/usr/sbin/") || path.hasPrefix("/usr/libexec/")
+                || path.hasPrefix("/System/Library/PrivateFrameworks/") || path.hasPrefix("/System/Library/Frameworks/")
+                || path.hasPrefix("/System/Library/Services/")
+                || (!path.hasPrefix("/System/Applications/") && path.hasPrefix("/System/")) {
                 return (true, "macOS background system daemon")
             }
         }
@@ -215,6 +229,11 @@ public final class SafeAppTerminator {
             // If it is not an NSRunningApplication (e.g., background process/daemon), send SIGTERM if user-owned
             if let bsd = Self.readBSDProcessIdentity(pid: app.id), bsd.uid == getuid() {
                 let rc = Darwin.kill(app.id, SIGTERM)
+                for childPID in app.groupedPIDs where childPID != app.id {
+                    if let childBSD = Self.readBSDProcessIdentity(pid: childPID), childBSD.uid == getuid() {
+                        Darwin.kill(childPID, SIGTERM)
+                    }
+                }
                 if rc == 0 {
                     DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 1.0) {
                         let postCheck = Self.verifyProcessIdentity(for: app)
@@ -282,6 +301,11 @@ public final class SafeAppTerminator {
             return forced ? .forceTerminated : .failed(reason: "OS declined forceTerminate()")
         } else if let bsd = Self.readBSDProcessIdentity(pid: app.id), bsd.uid == getuid() {
             let rc = Darwin.kill(app.id, SIGKILL)
+            for childPID in app.groupedPIDs where childPID != app.id {
+                if let childBSD = Self.readBSDProcessIdentity(pid: childPID), childBSD.uid == getuid() {
+                    Darwin.kill(childPID, SIGKILL)
+                }
+            }
             return rc == 0 ? .forceTerminated : .failed(reason: "SIGKILL failed with errno \(errno)")
         }
 

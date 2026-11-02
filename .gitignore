@@ -26,3 +26,5 @@ Package.resolved
 # Local build outputs (keep dist/MacResourceGuard-1.0.0.dmg or release via GitHub Releases)
 dist/*.app/
 dist/screenshots/
+dist/SHA256SUMS.txt
+dist/*.dmg

@@ -240,23 +240,31 @@ public final class ProcessAggregator {
 
     private func attachCachedIcon(to app: AggregatedAppProcess) -> AggregatedAppProcess {
         if app.icon != nil { return app }
-        let cacheKey = Self.outermostAppBundlePath(for: app.executablePath) ?? app.bundleIdentifier ?? "\(app.id)"
+        let cacheKey = Self.outermostAppBundlePath(for: app.executablePath)
+            ?? app.bundleIdentifier
+            ?? app.executablePath
+            ?? app.displayName
         let resolvedIcon: NSImage?
         if let cached = iconCacheByPath[cacheKey] {
             resolvedIcon = cached
-        } else if let runningIcon = NSRunningApplication(processIdentifier: app.id)?.icon {
-            iconCacheByPath[cacheKey] = runningIcon
-            resolvedIcon = runningIcon
-        } else if let bundlePath = Self.outermostAppBundlePath(for: app.executablePath) {
-            let fileIcon = NSWorkspace.shared.icon(forFile: bundlePath)
-            iconCacheByPath[cacheKey] = fileIcon
-            resolvedIcon = fileIcon
-        } else if let execPath = app.executablePath, FileManager.default.fileExists(atPath: execPath) {
-            let fileIcon = NSWorkspace.shared.icon(forFile: execPath)
-            iconCacheByPath[cacheKey] = fileIcon
-            resolvedIcon = fileIcon
         } else {
-            resolvedIcon = nil
+            if iconCacheByPath.count >= 128 {
+                iconCacheByPath.removeAll(keepingCapacity: true)
+            }
+            if let runningIcon = NSRunningApplication(processIdentifier: app.id)?.icon {
+                iconCacheByPath[cacheKey] = runningIcon
+                resolvedIcon = runningIcon
+            } else if let bundlePath = Self.outermostAppBundlePath(for: app.executablePath) {
+                let fileIcon = NSWorkspace.shared.icon(forFile: bundlePath)
+                iconCacheByPath[cacheKey] = fileIcon
+                resolvedIcon = fileIcon
+            } else if let execPath = app.executablePath, FileManager.default.fileExists(atPath: execPath) {
+                let fileIcon = NSWorkspace.shared.icon(forFile: execPath)
+                iconCacheByPath[cacheKey] = fileIcon
+                resolvedIcon = fileIcon
+            } else {
+                resolvedIcon = nil
+            }
         }
 
         return AggregatedAppProcess(

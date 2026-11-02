@@ -401,12 +401,16 @@ public final class PopoverViewController: NSViewController {
         settingsBtn.controlSize = .small
         settingsBtn.font = NSFont.systemFont(ofSize: 11, weight: .regular)
         settingsBtn.setAccessibilityLabel("Open Mac Resource Guard Settings")
+        settingsBtn.keyEquivalent = ","
+        settingsBtn.keyEquivalentModifierMask = .command
 
         let quitAppBtn = NSButton(title: "Quit Guard", target: self, action: #selector(handleQuitGuardApp))
         quitAppBtn.bezelStyle = .rounded
         quitAppBtn.controlSize = .small
         quitAppBtn.font = NSFont.systemFont(ofSize: 11, weight: .regular)
         quitAppBtn.setAccessibilityLabel("Quit Mac Resource Guard utility")
+        quitAppBtn.keyEquivalent = "q"
+        quitAppBtn.keyEquivalentModifierMask = .command
 
         let footerBar = NSStackView(views: [activityMonitorBtn, alertsToggleButton, NSView(), settingsBtn, quitAppBtn])
         footerBar.orientation = .horizontal
@@ -901,5 +905,25 @@ public final class PopoverViewController: NSViewController {
 
     @objc private func handleQuitGuardApp() {
         NSApplication.shared.terminate(nil)
+    }
+
+    public override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        if event.modifierFlags.contains(.command) {
+            if event.charactersIgnoringModifiers == "," {
+                handleOpenSettings()
+                return true
+            } else if event.charactersIgnoringModifiers == "q" {
+                handleQuitGuardApp()
+                return true
+            } else if event.charactersIgnoringModifiers == "a" {
+                selectAllCheckbox.performClick(nil)
+                return true
+            }
+        }
+        if event.keyCode == 53 { // Escape
+            view.window?.performClose(nil)
+            return true
+        }
+        return super.performKeyEquivalent(with: event)
     }
 }

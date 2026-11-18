@@ -155,18 +155,18 @@ public final class AppRowView: NSView {
         let safetyBadge: String
         if app.isProtectedSystemApp {
             safetyBadge = "Protected"
-            subtitleLabel.textColor = .systemOrange
+            subtitleLabel.textColor = .labelColor
         } else if awaitingForceQuit {
             safetyBadge = "Not responding / Save dialog open"
-            subtitleLabel.textColor = .systemOrange
+            subtitleLabel.textColor = .labelColor
         } else if app.isBackgroundProcess {
-            safetyBadge = "Safe to close"
+            safetyBadge = "Quit available"
             subtitleLabel.textColor = .secondaryLabelColor
         } else if app.hasIncompleteMetrics {
-            safetyBadge = "Safe to close • Partial metrics"
+            safetyBadge = "Quit available • Partial metrics"
             subtitleLabel.textColor = .secondaryLabelColor
         } else {
-            safetyBadge = "Safe to close"
+            safetyBadge = "Quit available"
             subtitleLabel.textColor = .secondaryLabelColor
         }
 
@@ -222,6 +222,8 @@ public final class AppRowView: NSView {
             quitButton.isEnabled = true
             quitButton.bezelColor = nil
         }
+        let actionName = app.isProtectedSystemApp ? "Protected application" : (awaitingForceQuit ? "Force Quit" : "Quit")
+        quitButton.setAccessibilityLabel("\(actionName) \(app.displayName)")
     }
 
     @objc private func handleCheckboxClicked() {

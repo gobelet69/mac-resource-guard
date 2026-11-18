@@ -264,7 +264,7 @@ public final class PopoverViewController: NSViewController {
         statusBadgeContainer.translatesAutoresizingMaskIntoConstraints = false
 
         statusBadgeLabel.font = NSFont.systemFont(ofSize: 11, weight: .semibold)
-        statusBadgeLabel.textColor = .systemGreen
+        statusBadgeLabel.textColor = .labelColor
         statusBadgeLabel.translatesAutoresizingMaskIntoConstraints = false
         statusBadgeContainer.addSubview(statusBadgeLabel)
 
@@ -563,7 +563,7 @@ public final class PopoverViewController: NSViewController {
         statusIconView.contentTintColor = statusColor
         statusTitleLabel.stringValue = snapshot.primaryPressureKind.displayName
         statusBadgeLabel.stringValue = snapshot.severity.badgeText
-        statusBadgeLabel.textColor = statusColor
+        statusBadgeLabel.textColor = .labelColor
         statusBadgeContainer.layer?.backgroundColor = statusColor.withAlphaComponent(0.16).cgColor
 
         if !settings.notificationsEnabled {

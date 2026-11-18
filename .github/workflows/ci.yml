@@ -48,6 +48,10 @@ jobs:
           test -f "dist/MacResourceGuard.app/Contents/MacOS/MacResourceGuard"
           test -f "dist/MacResourceGuard.app/Contents/Info.plist"
           plutil -lint "dist/MacResourceGuard.app/Contents/Info.plist"
-          test -f dist/*.dmg
+          VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "dist/MacResourceGuard.app/Contents/Info.plist")
+          test -n "$VERSION"
+          test -f "dist/MacResourceGuard-${VERSION}.dmg"
+          hdiutil verify "dist/MacResourceGuard-${VERSION}.dmg"
           test -f dist/SHA256SUMS.txt
+          (cd dist && shasum -a 256 -c SHA256SUMS.txt)
           echo "✓ MacResourceGuard CI build and verification succeeded."
